@@ -1,11 +1,7 @@
 ### Compiling
-#### №1
+### Using make
 ```sh
-gcc -g 1.c -o main -lncurses # Get the debug information
-```
-#### №2
-```sh
-gcc -g 2.c -o main -lc -lm # With included math and clib
+mkdir build && cd build && ../configure && make
 ```
 ### Debugging
 ```sh
