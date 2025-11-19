@@ -5,7 +5,8 @@ RUN apt -y update && apt -y install\
     nano\
     libncurses5-dev\
     libncursesw5-dev\
-    gdb
+    gdb\
+    make
 USER user
 WORKDIR /home/user
 CMD ["bash"]
