@@ -88,7 +88,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = p1$(EXEEXT) p2$(EXEEXT)
+bin_PROGRAMS = p1$(EXEEXT) p2$(EXEEXT) p3$(EXEEXT)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -106,6 +106,9 @@ p1_LDADD = $(LDADD)
 am_p2_OBJECTS = p2.$(OBJEXT)
 p2_OBJECTS = $(am_p2_OBJECTS)
 p2_LDADD = $(LDADD)
+am_p3_OBJECTS = p3.$(OBJEXT)
+p3_OBJECTS = $(am_p3_OBJECTS)
+p3_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -121,7 +124,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/p1.Po ./$(DEPDIR)/p2.Po
+am__depfiles_remade = ./$(DEPDIR)/p1.Po ./$(DEPDIR)/p2.Po \
+	./$(DEPDIR)/p3.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -135,8 +139,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(p1_SOURCES) $(p2_SOURCES)
-DIST_SOURCES = $(p1_SOURCES) $(p2_SOURCES)
+SOURCES = $(p1_SOURCES) $(p2_SOURCES) $(p3_SOURCES)
+DIST_SOURCES = $(p1_SOURCES) $(p2_SOURCES) $(p3_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -253,6 +257,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 p1_SOURCES = p1.c
 p2_SOURCES = p2.c
+p3_SOURCES = p3.c
 all: all-am
 
 .SUFFIXES:
@@ -337,6 +342,10 @@ p2$(EXEEXT): $(p2_OBJECTS) $(p2_DEPENDENCIES) $(EXTRA_p2_DEPENDENCIES)
 	@rm -f p2$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(p2_OBJECTS) $(p2_LDADD) $(LIBS)
 
+p3$(EXEEXT): $(p3_OBJECTS) $(p3_DEPENDENCIES) $(EXTRA_p3_DEPENDENCIES) 
+	@rm -f p3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(p3_OBJECTS) $(p3_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -345,6 +354,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p2.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/p3.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -495,6 +505,7 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 distclean: distclean-am
 	-rm -f ./$(DEPDIR)/p1.Po
 	-rm -f ./$(DEPDIR)/p2.Po
+	-rm -f ./$(DEPDIR)/p3.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -542,6 +553,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/p1.Po
 	-rm -f ./$(DEPDIR)/p2.Po
+	-rm -f ./$(DEPDIR)/p3.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
