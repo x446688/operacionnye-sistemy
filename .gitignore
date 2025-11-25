@@ -143,5 +143,7 @@ Temporary Items
 .bash_profile
 .zshrc
 .zprofile
+autom4te.cache
+build/
 
 # End of https://www.toptal.com/developers/gitignore/api/c,macos,emacs
