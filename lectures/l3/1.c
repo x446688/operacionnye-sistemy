@@ -1,5 +1,8 @@
+#include <unistd.h>    
+#include <sys/types.h>
 #include<stdio.h>
-#include<wait.h>
+#include<stdlib.h>
+#include<sys/wait.h>
 #include<signal.h>
 pid_t pid; 
 int counter = 0;
