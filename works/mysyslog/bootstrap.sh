@@ -4,5 +4,4 @@ if [ $(uname -o) == "Darwin" ]; then
     docker run -it --rm --platform linux/amd64 dolphian /bin/bash
 elif [ $(uname -o) == "GNU/Linux" ]; then
     make
-    make run
 fi
