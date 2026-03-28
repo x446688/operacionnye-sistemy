@@ -1,5 +1,14 @@
 # TODO
+- [x] libmysyslog
+- [x] libmysyslog-text
+- [x] libmysyslog-json
 - [x] replace low level syscalls with correcty 
-- [ ] add process logging
-- [ ] mysyslog-client
+- [x] add process logging
+- [x] mysyslog-client
+- [ ] mysyslog-daemon
+- [ ] individual makefiles
+- [ ] mds for all subprojects
+- [ ] debs with deps
+- [ ] meta mysyslog-meta
+- [ ] repository
 - [ ] fix GNU formatting
