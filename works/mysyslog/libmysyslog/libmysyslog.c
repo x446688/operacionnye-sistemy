@@ -32,7 +32,7 @@ mysyslog (const char* msg, int level, int driver, int format,
 							int level,
 							int format,
 							FILE* file) = dlsym(handle,"write_txt");
-			write_txt(msg, "", level, format, file);
+			write_txt(msg, __progname, level, format, file);
 			break;
 		case DRIVER_JSON: 
 			handle = dlopen("libmysyslog-json.so", RTLD_LAZY);
@@ -45,7 +45,7 @@ mysyslog (const char* msg, int level, int driver, int format,
 								int level,
 								int format,
 								FILE* file) = dlsym(handle,"write_json");
-			write_json(msg, "", level, format, file);
+			write_json(msg, __progname, level, format, file);
 			break;
 	}
 	fclose(file);
