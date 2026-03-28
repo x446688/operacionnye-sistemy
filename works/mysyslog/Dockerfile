@@ -2,8 +2,7 @@ FROM ubuntu:latest
 COPY --parents * /root/
 RUN <<EOF
     apt update -y
-    apt install -y gcc make tree
+    apt install -y gcc make tree libjson-c-dev pkg-config
 EOF
 WORKDIR /root
-RUN make
 CMD ["/bin/bash"]
