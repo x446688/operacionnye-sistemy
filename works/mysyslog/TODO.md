@@ -1,2 +1,4 @@
 # TODO
-- [ ] replace low level syscalls with correcty 
+- [x] replace low level syscalls with correcty 
+- [ ] add process logging
+- [ ] mysyslog-client
