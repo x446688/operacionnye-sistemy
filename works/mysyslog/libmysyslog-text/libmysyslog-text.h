@@ -8,8 +8,9 @@
 #include <time.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/types.h>
 
 void 
-write_txt(const char* msg, const char* path, int level);
+write_txt(const char* msg, const char* ps, int level, int format, FILE* filename);
 
 #endif

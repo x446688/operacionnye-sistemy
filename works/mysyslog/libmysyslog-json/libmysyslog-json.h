@@ -8,5 +8,5 @@
 #include <string.h>
 
 #define BSIZE 4096
-int
-write_json(const char* msg, const char* ps, int level, const char* path);
+void
+write_json(const char* msg, const char* ps, int level, int format, FILE* file);

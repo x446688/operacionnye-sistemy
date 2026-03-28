@@ -13,38 +13,42 @@ int
 mysyslog (const char* msg, int level, int driver, int format,
 		  const char* path)
 {
-	switch(driver){
-		case DRIVER_UNKNOWN: return -1;
-		case DRIVER_TEXT: break;
-		case DRIVER_JSON: break;
-	}
-	switch(format){
-		case FORMAT_COMPACT: break;
-		case FORMAT_NORMAL: break;
-		case FORMAT_VERBOSE: break;
-	} // ДОБАВИТЬ ОБРАБОТКУ МОДУЛЕЙ
+	FILE* file = fopen(path,"aw");
+	if (file == NULL) {
+        perror("fopen");
+    }
 	void* handle;
-	handle = dlopen("libmysyslog-text.so", RTLD_LAZY);
-	if (!handle){
-		perror("handle");
-		return -1;
+	switch(driver){
+		// (const char* msg, int level, int format, const char* path)
+		case DRIVER_UNKNOWN: return -1;
+		case DRIVER_TEXT: 
+			handle = dlopen("libmysyslog-text.so", RTLD_LAZY);
+			if (!handle){
+				perror("handle");
+				return -1;
+			}
+			void (*write_txt) (const char* msg, 
+							const char* ps,
+							int level,
+							int format,
+							FILE* file) = dlsym(handle,"write_txt");
+			write_txt(msg, "", level, format, file);
+			break;
+		case DRIVER_JSON: 
+			handle = dlopen("libmysyslog-json.so", RTLD_LAZY);
+			if (!handle){
+				perror("handle");
+				return -1;
+			} // ИМПОРТИРОВАТЬ ТОЛЬКО ПРИ СОВПАДЕНИИ С КЕЙСОМ
+			void (*write_json) (const char* msg, 
+								const char* ps,
+								int level,
+								int format,
+								FILE* file) = dlsym(handle,"write_json");
+			write_json(msg, "", level, format, file);
+			break;
 	}
-	void (*write_txt) (const char* msg, 
-					   const char* path, 
-					   int level) = dlsym(handle,"write_txt");
-	write_txt(msg, path, level);
+	fclose(file);
 	dlclose(handle);
-	void* handle_json;
-	handle_json = dlopen("libmysyslog-json.so", RTLD_LAZY);
-	if (!handle){
-		perror("handle");
-		return -1;
-	} // ИМПОРТИРОВАТЬ ТОЛЬКО ПРИ СОВПАДЕНИИ С КЕЙСОМ
-	void (*write_json) (const char* msg, 
-						const char* ps,
-						int level,
-					    const char* path) = dlsym(handle_json,"write_json");
-	write_json(msg, "", level, path);
-	dlclose(handle_json);
 	return 0;
 }

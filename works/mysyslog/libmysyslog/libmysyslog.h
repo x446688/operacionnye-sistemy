@@ -31,8 +31,7 @@ enum driver
 enum format
 {
 	FORMAT_COMPACT,
-	FORMAT_NORMAL,
-	FORMAT_VERBOSE	
+	FORMAT_NORMAL	
 };
 int
 mysyslog (const char* msg, int level, int driver, int format,

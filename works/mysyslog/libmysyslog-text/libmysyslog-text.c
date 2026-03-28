@@ -2,15 +2,19 @@
 #include "../libmysyslog/libmysyslog.h"
 
 void
-write_txt(const char* msg, const char* path, int level)
-{
-	int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, S_IRWXU);
-	if (fd < 0) {
-		perror("open");
+write_txt(const char* msg, const char* ps, int level, int format, FILE* file)
+{	
+	time_t t = time(NULL);
+	char* timestr = asctime(localtime(&t)); // until a better solution comes to mind
+	timestr[strlen(timestr)-sizeof(char)] = '\0'; // asctime
+	switch (format) {
+		case FORMAT_COMPACT:
+			fprintf(file,"%ld %s NULL %s\n", (intmax_t)t, log_level_strings[level], msg);
+			break;
+		case FORMAT_NORMAL:
+			fprintf(file,"%s %s NULL %s\n", timestr, log_level_strings[level], msg);
+			break;
+		default:
+			break;
 	}
-	char intbuf[BSIZE];
-	snprintf(intbuf, BSIZE, "%jd %s TODO %s\n", 
-			 (intmax_t)time(NULL), log_level_strings[level], msg);	  	
-	write(fd, intbuf, (size_t)strlen(intbuf));
-	close(fd);
 }

@@ -5,5 +5,6 @@
 int
 main ()
 {
-	mysyslog("dummy", LOG_LVL_INFO, DRIVER_TEXT, 0, "./test.txt");
+	mysyslog("dummy", LOG_LVL_INFO, DRIVER_JSON, FORMAT_NORMAL, "./test.txt");
+	//mysyslog("dummy", LOG_LVL_INFO, DRIVER_JSON, FORMAT_COMPACT, "./test.txt");
 }
