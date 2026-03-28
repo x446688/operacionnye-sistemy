@@ -8,19 +8,18 @@
 #include <dlfcn.h>
 #include <stdint.h> // Для конвертации времени в int
 #include "libmysyslog.h"
+extern char *__progname; // p
 
 int
 mysyslog (const char* msg, int level, int driver, int format,
 		  const char* path)
 {
-	printf("%s\n%s\n%d %d %d",msg,path,level,driver,format);
 	FILE* file = fopen(path,"aw");
 	if (file == NULL) {
         perror("fopen");
     }
 	void* handle;
 	switch(driver){
-		// (const char* msg, int level, int format, const char* path)
 		case DRIVER_UNKNOWN: return -1;
 		case DRIVER_TEXT: 
 			handle = dlopen("libmysyslog-text.so", RTLD_LAZY);

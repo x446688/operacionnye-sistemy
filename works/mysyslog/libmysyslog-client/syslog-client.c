@@ -50,26 +50,21 @@ main (int argc, char **argv)
             break;
 
 		case 'm':
-			printf("%s ",optarg);
 			msg = optarg;
 			break;
 
 		case 'l':
-			printf("%s ",optarg);
 			level = atoi(optarg);
 			break;
 
 		case 'd':
-			printf("%s ",optarg);
 			driver = atoi(optarg);
 			break;
 
 		case 'f':
-			printf("%s ",optarg);
 			format = atoi(optarg);
 			break;
 		case 'p':
-			printf("%s ",optarg);
 			path = optarg;
 			break;
 		case '?':
