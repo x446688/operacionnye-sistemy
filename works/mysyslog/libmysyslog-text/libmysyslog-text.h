@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
-#include "libmysyslog.h"
 #include <stdint.h>
 #include <string.h>
 

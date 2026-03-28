@@ -1,7 +1,6 @@
 #include "libmysyslog-text.h"
 #include "../libmysyslog/libmysyslog.h"
 
-
 void
 write_txt(const char* msg, const char* path, int level)
 {

@@ -22,7 +22,7 @@ mysyslog (const char* msg, int level, int driver, int format,
 		case FORMAT_COMPACT: break;
 		case FORMAT_NORMAL: break;
 		case FORMAT_VERBOSE: break;
-	}
+	} // ДОБАВИТЬ ОБРАБОТКУ МОДУЛЕЙ
 	void* handle;
 	handle = dlopen("libmysyslog-text.so", RTLD_LAZY);
 	if (!handle){
@@ -34,5 +34,17 @@ mysyslog (const char* msg, int level, int driver, int format,
 					   int level) = dlsym(handle,"write_txt");
 	write_txt(msg, path, level);
 	dlclose(handle);
+	void* handle_json;
+	handle_json = dlopen("libmysyslog-json.so", RTLD_LAZY);
+	if (!handle){
+		perror("handle");
+		return -1;
+	} // ИМПОРТИРОВАТЬ ТОЛЬКО ПРИ СОВПАДЕНИИ С КЕЙСОМ
+	void (*write_json) (const char* msg, 
+						const char* ps,
+						int level,
+					    const char* path) = dlsym(handle_json,"write_json");
+	write_json(msg, "", level, path);
+	dlclose(handle_json);
 	return 0;
 }
