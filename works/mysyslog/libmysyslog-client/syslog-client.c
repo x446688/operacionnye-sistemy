@@ -2,11 +2,22 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "../libmysyslog/libmysyslog.h"
+#include <dlfcn.h>
 
 int
 main (int argc, char **argv)
 {
+	void* handle;
+	handle = dlopen("libmysyslog.so", RTLD_LAZY);
+	if (!handle){
+		perror("handle");
+		return -1;
+	}
+	void (*mysyslog) (const char* msg, 
+							int level,
+							int driver,
+							int format,
+							const char* path) = dlsym(handle,"mysyslog");
 	const char* msg;
 	int level = 0;
 	int driver = 0;
@@ -74,5 +85,6 @@ main (int argc, char **argv)
         printf("\n");
     }
 	mysyslog(msg, level, driver, format, path);
+	dlclose(handle);
 	return 0;
 }
