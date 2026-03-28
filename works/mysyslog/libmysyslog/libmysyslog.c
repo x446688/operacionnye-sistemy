@@ -13,6 +13,7 @@ int
 mysyslog (const char* msg, int level, int driver, int format,
 		  const char* path)
 {
+	printf("%s\n%s\n%d %d %d",msg,path,level,driver,format);
 	FILE* file = fopen(path,"aw");
 	if (file == NULL) {
         perror("fopen");
