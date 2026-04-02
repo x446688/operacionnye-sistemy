@@ -35,26 +35,27 @@ all: $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET) $(CLIENT_TARGET) $(DAEMON_TARGE
 $(DAEMON_TARGET): $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET)
 	make -C $(DAEMON_DIR)
 
+$(CLIENT_TARGET): $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET)
+	make -C $(CLIENT_DIR)
+
 $(LIB_TARGET): $(LIB_SRC) $(LIB_HEADER)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(LIB_SRC)
+	make -C $(LIB_DIR)
 
-$(TEXT_TARGET): $(TEXT_SRC) $(TEXT_HEADER) $(LIB_HEADER)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(TEXT_SRC)
+$(TEXT_TARGET): $(TEXT_SRC) $(TEXT_HEADER) $(LIB_HEADER) $(LIB_SRC)
+	make -C $(TEXT_DIR)
 
-$(JSON_TARGET): $(JSON_SRC) $(JSON_HEADER) $(LIB_HEADER)
-	$(CC) $(CFLAGS) $(JSON_C_CFLAGS) $(LDFLAGS) -o $@ $(JSON_SRC) $(JSON_C_LIBS)
-
-$(CLIENT_TARGET): $(CLIENT_SRC) $(LIB_HEADER) $(TEXT_HEADER) $(JSON_HEADER)
-	$(CC) -Wall -Wextra -o $@ $(CLIENT_SRC) \
-		-I$(LIB_DIR) -I$(TEXT_DIR) -I$(JSON_DIR)\
-		-L$(LIB_DIR) -L$(TEXT_DIR) -L$(JSON_DIR)\
-		-lmysyslog -lmysyslog-text -lmysyslog-json -ldl \
-		-Wl,-rpath,$(shell pwd)/$(LIB_DIR) -Wl,-rpath,$(shell pwd)/$(TEXT_DIR) -Wl,-rpath,$(shell pwd)/$(JSON_DIR)
+$(JSON_TARGET): $(JSON_SRC) $(JSON_HEADER) $(LIB_HEADER) $(LIB_SRC)
+	make -C $(JSON_DIR)
 
 clean:
 	rm -f $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET) $(CLIENT_TARGET)
 	rm -f $(LIB_DIR)/*.o $(TEXT_DIR)/*.o $(CLIENT_DIR)/*.o $(JSON_DIR)/*.o
 	rm -f *.txt
+	make -C $(LIB_DIR) clean
+	make -C $(CLIENT_DIR) clean
+	make -C $(DAEMON_DIR) clean
+	make -C $(TEXT_DIR) clean
+	make -C $(JSON_DIR) clean
 
 run: $(CLIENT_TARGET)
 	LD_LIBRARY_PATH=$(LIB_DIR):$(TEXT_DIR):$(JSON_DIR) ./$(CLIENT_TARGET)
