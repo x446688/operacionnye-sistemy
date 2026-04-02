@@ -1,0 +1,13 @@
+[Unit]
+Description=mysyslog-daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/daemon \
+	--conf_file /etc/mysyslog/mysyslog.cfg \
+	--log_file /var/log/mysyslog/mysyslog.log
+User=mysyslog
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
