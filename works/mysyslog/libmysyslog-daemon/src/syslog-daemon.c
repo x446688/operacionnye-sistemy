@@ -93,7 +93,6 @@ int read_conf_file(int reload)
 int test_conf_file(char *_conf_file_name)
 {
 	FILE *conf_file = NULL;
-	int ret = -1;
 
 	conf_file = fopen(_conf_file_name, "r");
 
@@ -102,16 +101,30 @@ int test_conf_file(char *_conf_file_name)
 			_conf_file_name);
 		return EXIT_FAILURE;
 	}
-	char buf_ls[256];
-	char buf_rs[4096];
-	ret = fscanf(conf_file, "%s %s", buf_ls, buf_rs);
-	printf("%s:%s", buf_ls, buf_rs);
-	if (ret <= 0) {
+	config_option_t co;
+	co = read_config_file(_conf_file_name);
+	if (co == NULL) {
 		fprintf(stderr, "Wrong config file %s\n", _conf_file_name);
 	}
-	fclose(conf_file);
-
-	if (ret > 0)
+	while(1) {
+		if (strncmp(co->key, "path", 128) == 0) {
+			passed_filepath = malloc(sizeof(char) * 128);
+			memcpy(passed_filepath, co->value, 128); // ..
+		}
+		if (strncmp(co->key, "format", 128) == 0) {
+			format = atoi(co->value);
+		}
+		if (strncmp(co->key, "driver", 128) == 0) {
+			driver = atoi(co->value);
+		}
+		printf("Found configuration option: %s\n", co->key);
+		if (co->prev != NULL) {
+			co = co->prev;
+		} else {
+			break;
+		}
+	}
+	if (co != NULL || passed_filepath == NULL)
 		return EXIT_SUCCESS;
 	else
 		return EXIT_FAILURE;
