@@ -33,7 +33,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <dlfcn.h>
 #include "parser.h"
+#include "libmysyslog.h"
 
 static int running = 0;
 static int delay = 1;
@@ -55,36 +57,42 @@ static int format = 0;
  */
 int read_conf_file(int reload)
 {
-	FILE *conf_file = NULL;
-	int ret = -1;
-
 	if (conf_file_name == NULL) return 0;
-
-	conf_file = fopen(conf_file_name, "r");
-
-	if (conf_file == NULL) {
+	config_option_t co;
+	co = read_config_file(conf_file_name);
+	if (co == NULL) {
 		syslog(LOG_ERR, "Can not open config file: %s, error: %s",
 				conf_file_name, strerror(errno));
 		return -1;
 	}
-
-	ret = fscanf(conf_file, "%d", &delay);
-
-	if (ret > 0) {
-		if (reload == 1) {
-			syslog(LOG_INFO, "Reloaded configuration file %s of %s",
-				conf_file_name,
-				app_name);
+	while(1) {
+		if (strncmp(co->key, "path", 128) == 0) {
+			passed_filepath = malloc(sizeof(char) * 128);
+			memcpy(passed_filepath, co->value, 128); // ..
+		}
+		if (strncmp(co->key, "format", 128) == 0) {
+			format = atoi(co->value);
+		}
+		if (strncmp(co->key, "driver", 128) == 0) {
+			driver = atoi(co->value);
+		}
+		printf("Found configuration option: %s\n", co->key);
+		if (co->prev != NULL) {
+			co = co->prev;
 		} else {
-			syslog(LOG_INFO, "Configuration of %s read from file %s",
-				app_name,
-				conf_file_name);
+			break;
 		}
 	}
-
-	fclose(conf_file);
-
-	return ret;
+	if (reload == 1) {
+		syslog(LOG_INFO, "Reloaded configuration file %s of %s",
+			conf_file_name,
+			app_name);
+	} else {
+		syslog(LOG_INFO, "Configuration of %s read from file %s",
+			app_name,
+			conf_file_name);
+	}
+	return 0; // change to actual return code later
 }
 
 /**
@@ -334,22 +342,7 @@ int main(int argc, char *argv[])
 
 	/* Never ending loop of server */
 	while (running == 1) {
-		/* Debug print */
-		ret = fprintf(log_stream, "Debug: %d\n", counter++);
-		if (ret < 0) {
-			syslog(LOG_ERR, "Can not write to log stream: %s, error: %s",
-				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
-			break;
-		}
-		ret = fflush(log_stream);
-		if (ret != 0) {
-			syslog(LOG_ERR, "Can not fflush() log stream: %s, error: %s",
-				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
-			break;
-		}
-
-		
-
+		mysyslog("test",level,driver,format,passed_filepath);
 		sleep(delay);
 	}
 

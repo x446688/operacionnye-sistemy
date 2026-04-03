@@ -11,9 +11,8 @@ struct config_option {
 
 config_option_t read_config_file(char* path) {
     FILE* fp;
-    
-    if ((fp = fopen(path, "r+")) == NULL) {
-        perror("fopen()");
+    if ((fp = fopen(path, "r")) == NULL) {
+        perror("parser fopen()");
         return NULL;
     }
     
@@ -37,7 +36,7 @@ config_option_t read_config_file(char* path) {
                 free(co);
                 continue;
             }
-            perror("fscanf()");
+            perror("parser fscanf()");
             free(co);
             continue;
         }

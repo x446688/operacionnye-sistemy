@@ -2,7 +2,7 @@
 #ifndef BSIZE
 #define BSIZE 4096
 #endif
-
+extern char *__progname; 
 const char * log_level_strings [] = 
 {
 	"   DEBUG", 

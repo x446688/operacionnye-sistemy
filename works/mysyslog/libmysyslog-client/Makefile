@@ -1,7 +1,6 @@
 CC = gcc
 SRC = src/syslog-client.c
 LIB_DIR = ../libmysyslog
-PARSE_DIR = libparse
 TEXT_DIR = ../libmysyslog-text
 JSON_DIR = ../libmysyslog-json
 TARGET = syslog-client

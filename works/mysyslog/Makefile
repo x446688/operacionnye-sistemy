@@ -57,5 +57,9 @@ clean:
 	make -C $(TEXT_DIR) clean
 	make -C $(JSON_DIR) clean
 
-run: $(CLIENT_TARGET)
-	LD_LIBRARY_PATH=$(LIB_DIR):$(TEXT_DIR):$(JSON_DIR) ./$(CLIENT_TARGET)
+install:
+	cp $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET) /usr/lib
+	make -C $(DAEMON_DIR) install
+
+#run: $(CLIENT_TARGET) #todo
+#	LD_LIBRARY_PATH=$(LIB_DIR):$(TEXT_DIR):$(JSON_DIR) ./$(CLIENT_TARGET)

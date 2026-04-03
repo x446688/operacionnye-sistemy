@@ -6,9 +6,8 @@
 #include <string.h>
 #include <time.h>
 #include <dlfcn.h>
-#include <stdint.h> // Для конвертации времени в int
+#include <stdint.h> 
 #include "libmysyslog.h"
-extern char *__progname; // p
 
 int
 mysyslog (const char* msg, int level, int driver, int format,
@@ -16,7 +15,7 @@ mysyslog (const char* msg, int level, int driver, int format,
 {
 	FILE* file = fopen(path,"aw");
 	if (file == NULL) {
-        perror("fopen");
+        perror("libmysyslog.so fopen");
     }
 	void* handle;
 	switch(driver){
@@ -24,7 +23,7 @@ mysyslog (const char* msg, int level, int driver, int format,
 		case DRIVER_TEXT: 
 			handle = dlopen("libmysyslog-text.so", RTLD_LAZY);
 			if (!handle){
-				perror("handle");
+				perror("libmysyslog-text.so");
 				return -1;
 			}
 			void (*write_txt) (const char* msg, 
@@ -37,7 +36,7 @@ mysyslog (const char* msg, int level, int driver, int format,
 		case DRIVER_JSON: 
 			handle = dlopen("libmysyslog-json.so", RTLD_LAZY);
 			if (!handle){
-				perror("handle");
+				perror("libmysyslog-json.so");
 				return -1;
 			} // ИМПОРТИРОВАТЬ ТОЛЬКО ПРИ СОВПАДЕНИИ С КЕЙСОМ
 			void (*write_json) (const char* msg, 

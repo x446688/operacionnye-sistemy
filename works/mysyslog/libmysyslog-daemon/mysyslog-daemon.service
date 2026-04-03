@@ -3,9 +3,9 @@ Description=mysyslog-daemon
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/daemon \
-	--conf_file /etc/mysyslog/mysyslog.cfg \
-	--log_file /var/log/mysyslog/mysyslog.log
+ExecStart=/usr/bin/mysyslog-daemon \
+	--conf_file /etc/mysyslog/mysyslog.conf \
+	--log_file /var/log/mysyslog/msl.log
 User=mysyslog
 ExecReload=/bin/kill -HUP $MAINPID
 
