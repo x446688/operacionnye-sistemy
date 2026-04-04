@@ -13,6 +13,7 @@ TEXT_DIR = libmysyslog-text
 JSON_DIR = libmysyslog-json
 CLIENT_DIR = libmysyslog-client
 DAEMON_DIR = libmysyslog-daemon
+PARSER_DIR = $(DAEMON_DIR)/libparse
 
 LIB_TARGET = $(LIB_DIR)/libmysyslog.so
 TEXT_TARGET = $(TEXT_DIR)/libmysyslog-text.so
@@ -29,10 +30,11 @@ DAEMON_SRC = $(DAEMON_DIR)/syslog-daemon.c
 LIB_HEADER = $(LIB_DIR)/libmysyslog.h
 JSON_HEADER = $(JSON_DIR)/libmysyslog-json.h
 TEXT_HEADER = $(TEXT_DIR)/libmysyslog-text.h
+PARSER_HEADER = $(PARSER_DIR)/parser.h
 
 all: $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET) $(CLIENT_TARGET) $(DAEMON_TARGET)
 
-$(DAEMON_TARGET): $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET)
+$(DAEMON_TARGET): $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET) $(PARSER_HEADER)
 	make -C $(DAEMON_DIR)
 
 $(CLIENT_TARGET): $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET)
