@@ -36,6 +36,7 @@
 #include <dlfcn.h>
 #include "parser.h"
 #include "libmysyslog.h"
+#include <time.h>
 
 static int running = 0;
 static int delay = 1;
@@ -242,6 +243,7 @@ static void daemonize()
 		sprintf(str, "%d\n", getpid());
 		/* Write PID to lockfile */
 		write(pid_fd, str, strlen(str));
+		close(pid_fd);
 	}
 }
 
@@ -264,6 +266,7 @@ void print_help(void)
 /* Main function */
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
 	static struct option long_options[] = {
 		{"conf_file", required_argument, 0, 'c'},
 		{"test_conf", required_argument, 0, 't'},
@@ -342,7 +345,10 @@ int main(int argc, char *argv[])
 
 	/* Never ending loop of server */
 	while (running == 1) {
-		mysyslog("test",level,driver,format,passed_filepath);
+		int lvl_val = rand()%5;
+		int driver_val = 1 + rand()%2;
+		int format_val = rand()%2;
+		mysyslog("sample text",lvl_val,driver_val,format_val,passed_filepath);
 		sleep(delay);
 	}
 

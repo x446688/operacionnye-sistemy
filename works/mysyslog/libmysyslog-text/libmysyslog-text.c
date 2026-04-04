@@ -9,10 +9,10 @@ write_txt(const char* msg, const char* ps, int level, int format, FILE* file)
 	timestr[strlen(timestr)-sizeof(char)] = '\0'; // asctime
 	switch (format) {
 		case FORMAT_COMPACT:
-			fprintf(file,"%ld %s NULL %s\n", (intmax_t)t, log_level_strings[level], msg);
+			fprintf(file,"%ld %s %s %s\n", (intmax_t)t, log_level_strings[level], __progname, msg);
 			break;
 		case FORMAT_NORMAL:
-			fprintf(file,"%s %s NULL %s\n", timestr, log_level_strings[level], msg);
+			fprintf(file,"%s %s %s %s\n", timestr, log_level_strings[level], __progname , msg);
 			break;
 		default:
 			break;

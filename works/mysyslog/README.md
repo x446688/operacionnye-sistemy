@@ -33,5 +33,5 @@ chmod +x bootstrap.sh
 ## Тестирование компонент (без установки)
 
 ```bash
-LD_LIBRARY_PATH=libmysyslog:libmysyslog-text:libmysyslog-json ./libmysyslog-client/syslog-client --msg "success" --path "log.txt" --driver "2" -f "1" -l "1"
+syslog-client --msg "success" --path "log.txt" --driver "2" -f "1" -l "1"
 ```

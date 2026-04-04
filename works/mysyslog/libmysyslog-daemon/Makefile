@@ -17,6 +17,7 @@ install:
 	cp $(TARGET) /usr/bin
 	test -d /etc/mysyslog || mkdir /etc/mysyslog 
 	test -d /var/log/mysyslog || mkdir /var/log/mysyslog
+	test -d /run/mysyslog || mkdir /run/mysyslog
 	touch /var/log/mysyslog/msl.log
 	touch /var/log/msl.log
 	cp mysyslog.conf /etc/mysyslog
@@ -27,4 +28,6 @@ install:
 	chown -R root:mysyslog /var/log/mysyslog
 	chmod 664 /var/log/mysyslog/msl.log
 	chmod 664 /var/log/msl.log
+	chmod 755 /run/mysyslog
+	chown -R mysyslog:mysyslog /run/mysyslog
 	cp mysyslog-daemon.service /usr/lib/systemd/system

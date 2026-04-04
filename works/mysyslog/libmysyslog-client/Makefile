@@ -12,3 +12,5 @@ $(TARGET): $(SRC)
 		-lmysyslog -lmysyslog-text -lmysyslog-json -ldl 
 clean:
 	rm -fr $(TARGET)
+install:
+	cp $(TARGET) /usr/bin

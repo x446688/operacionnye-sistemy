@@ -3,11 +3,6 @@ CC = gcc
 CFLAGS = -fPIC -Wall -Wextra -I./libmysyslog -I./libmysyslog-text -I./libmysyslog-json
 LDFLAGS = -shared -ldl
 
-JSON_C_CFLAGS = $(shell pkg-config --cflags json-c)
-JSON_C_LIBS = $(shell pkg-config --libs json-c)
-
-$(info "Loaded $(JSON_C_CFLAGS) & $(JSON_C_LIBS)")
-
 LIB_DIR = libmysyslog
 TEXT_DIR = libmysyslog-text
 JSON_DIR = libmysyslog-json
@@ -61,7 +56,6 @@ clean:
 
 install:
 	cp $(LIB_TARGET) $(TEXT_TARGET) $(JSON_TARGET) /usr/lib
+	cp $(LIB_HEADER) $(JSON_HEADER) $(TEXT_HEADER) $(PARSER_HEADER) /usr/include
 	make -C $(DAEMON_DIR) install
-
-#run: $(CLIENT_TARGET) #todo
-#	LD_LIBRARY_PATH=$(LIB_DIR):$(TEXT_DIR):$(JSON_DIR) ./$(CLIENT_TARGET)
+	make -C $(CLIENT_DIR) install

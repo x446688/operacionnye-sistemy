@@ -2,10 +2,13 @@
 Description=mysyslog-daemon
 
 [Service]
-Type=simple
+Type=forking
+PIDFile=/run/mysyslog/mysyslog-daemon.pid
 ExecStart=/usr/bin/mysyslog-daemon \
 	--conf_file /etc/mysyslog/mysyslog.conf \
-	--log_file /var/log/mysyslog/msl.log
+	--log_file /var/log/mysyslog/msl.log \
+	--pid_file /run/mysyslog/mysyslog-daemon.pid \
+	--daemon
 User=mysyslog
 ExecReload=/bin/kill -HUP $MAINPID
 
