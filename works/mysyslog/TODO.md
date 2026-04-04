@@ -5,8 +5,8 @@
 - [x] replace low level syscalls with correcty 
 - [x] add process logging
 - [x] mysyslog-client
-- [ ] mysyslog-daemon
-- [ ] individual makefiles
+- [x] mysyslog-daemon (check signal handling when revisioning)
+- [x] individual makefiles
 - [ ] mds for all subprojects
 - [ ] debs with deps
 - [ ] meta mysyslog-meta
