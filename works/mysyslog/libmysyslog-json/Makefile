@@ -9,6 +9,12 @@ JSON_C_LIBS = $(shell pkg-config --libs json-c)
 
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(JSON_C_CFLAGS) $(LDFLAGS) -o $@ $(SRC) $(JSON_C_LIBS)
+
 clean:
 	rm -fr $(TARGET)
-	
+
+deb: $(TARGET)
+	mkdir -p package/usr/lib
+	cp $< package/usr/lib
+	dpkg-deb --build ./package
+	mv package.deb libmysyslog-json.deb

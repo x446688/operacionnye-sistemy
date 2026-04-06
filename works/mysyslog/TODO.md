@@ -8,7 +8,7 @@
 - [x] mysyslog-daemon (check signal handling when revisioning)
 - [x] individual makefiles
 - [ ] mds for all subprojects
-- [ ] debs with deps
+- [x] debs with deps
 - [ ] meta mysyslog-meta
 - [ ] repository
 - [ ] fix GNU formatting

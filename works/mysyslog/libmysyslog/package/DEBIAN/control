@@ -1,0 +1,10 @@
+Package: libmysyslog
+Version: 1.0
+Section: devel
+Priotity: optional
+Depends: libc6
+Architecture: amd64
+Essential: no
+Installed-Size: 16
+Maintainer: Lidskiy A. A. <besplatnii@internet.ru>
+Description: libmysyslog logger lib

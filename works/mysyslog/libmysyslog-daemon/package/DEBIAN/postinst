@@ -1,0 +1,16 @@
+#!/bin/bash
+test -d /etc/mysyslog || mkdir /etc/mysyslog 
+test -d /var/log/mysyslog || mkdir /var/log/mysyslog
+test -d /run/mysyslog || mkdir /run/mysyslog
+touch /var/log/mysyslog/msl.log
+touch /var/log/msl.log
+chmod -R 755 /etc/mysyslog
+chmod -R 775 /var/log/mysyslog
+getent group mysyslog || addgroup --system mysyslog
+id mysyslog || adduser --system --ingroup mysyslog mysyslog
+chown -R root:mysyslog /var/log/mysyslog
+chmod 664 /var/log/mysyslog/msl.log
+chmod 664 /var/log/msl.log
+chmod 755 /run/mysyslog
+chown -R mysyslog:mysyslog /run/mysyslog
+echo "libmysyslog-daemon has been succesfully installed on your system."

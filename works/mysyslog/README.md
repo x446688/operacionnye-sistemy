@@ -33,5 +33,5 @@ chmod +x bootstrap.sh
 ## Тестирование компонент (без установки)
 
 ```bash
-syslog-client --msg "success" --path "log.txt" --driver "2" -f "1" -l "1"
+mysyslog-client --msg "success" --path "log.txt" --driver "2" -f "1" -l "1"
 ```

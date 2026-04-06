@@ -1,9 +1,9 @@
 CC = gcc
-SRC = src/syslog-client.c
+SRC = src/mysyslog-client.c
 LIB_DIR = ../libmysyslog
 TEXT_DIR = ../libmysyslog-text
 JSON_DIR = ../libmysyslog-json
-TARGET = syslog-client
+TARGET = mysyslog-client
 
 $(TARGET): $(SRC)
 	$(CC) -Wall -Wextra -o $@ $(SRC) \
@@ -12,5 +12,10 @@ $(TARGET): $(SRC)
 		-lmysyslog -lmysyslog-text -lmysyslog-json -ldl 
 clean:
 	rm -fr $(TARGET)
-install:
-	cp $(TARGET) /usr/bin
+	
+deb: $(TARGET)
+	mkdir -p package/usr/bin
+	chmod 775 package/DEBIAN/postinst
+	cp $< package/usr/bin
+	dpkg-deb --build ./package
+	mv package.deb $(TARGET).deb
