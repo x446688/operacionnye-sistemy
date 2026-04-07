@@ -14,13 +14,12 @@ $(TARGET): $(SRC)
 
 clean:
 	rm -fr $(TARGET)
+	rm -fr package/usr/bin
+	rm $(TARGET).deb
 
 deb: $(TARGET)
 	mkdir -p package/usr/bin
-	mkdir -p package/usr/lib
-	mkdir -p package/etc/mysyslog
-	mkdir -p package/usr/lib/systemd/system
 	chmod 775 package/DEBIAN/postinst
 	cp $< package/usr/bin
 	dpkg-deb --build ./package
-	mv package.deb libmysyslog-daemon.deb
+	mv package.deb $(TARGET).deb

@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <dlfcn.h>
-#include "libmysyslog.h"
+#include <libmysyslog.h>
 
 int
 main (int argc, char **argv)

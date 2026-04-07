@@ -10,8 +10,11 @@ $(TARGET): $(SRC)
 		-I$(LIB_DIR) -I$(TEXT_DIR) -I$(JSON_DIR)\
 		-L$(LIB_DIR) -L$(TEXT_DIR) -L$(JSON_DIR)\
 		-lmysyslog -lmysyslog-text -lmysyslog-json -ldl 
+
 clean:
 	rm -fr $(TARGET)
+	rm -fr package/usr/bin
+	rm $(TARGET).deb
 	
 deb: $(TARGET)
 	mkdir -p package/usr/bin

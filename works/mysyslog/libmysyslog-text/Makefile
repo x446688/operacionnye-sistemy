@@ -10,6 +10,8 @@ $(TARGET): $(SRC)
 
 clean:
 	rm -fr $(TARGET)
+	rm -fr package/usr/bin
+	rm $(TARGET).deb
 	
 deb: $(TARGET)
 	mkdir -p package/usr/lib

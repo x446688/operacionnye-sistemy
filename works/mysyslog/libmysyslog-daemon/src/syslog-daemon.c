@@ -35,7 +35,7 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include "parser.h"
-#include "libmysyslog.h"
+#include <libmysyslog.h>
 #include <time.h>
 
 static int running = 0;

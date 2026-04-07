@@ -10,10 +10,12 @@ $(TARGET): $(SRC)
 
 clean:
 	rm -fr $(TARGET)
+	rm -fr package/usr/lib
+	rm $(TARGET).deb
 
 deb: $(TARGET)
 	mkdir -p package/usr/lib
 	chmod 775 package/DEBIAN/postinst
 	cp $< package/usr/lib
 	dpkg-deb --build ./package
-	mv package.deb libmysyslog.deb
+	mv package.deb $(TARGET).deb
