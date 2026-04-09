@@ -17,7 +17,7 @@ This will install:
 To test the daemon without running it daemonized (with systemd you can directly run the binary file from `/usr/bin/`).
 
 ```sh
-mysyslog-daemon --conf_file /etc/mysyslog.conf --log_file /var/log/mysyslog.msl.conf 
+mysyslog-daemon --conf_file /etc/mysyslog/mysyslog.conf --log_file /var/log/mysyslog/msl.log
 ```
 
 You can also run the service with systemctl:
