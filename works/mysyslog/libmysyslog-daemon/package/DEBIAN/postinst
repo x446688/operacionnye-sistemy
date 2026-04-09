@@ -9,8 +9,9 @@ chmod -R 775 /var/log/mysyslog
 getent group mysyslog || addgroup --system mysyslog
 id mysyslog || adduser --system --ingroup mysyslog mysyslog
 chown -R root:mysyslog /var/log/mysyslog
+chown -R mysyslog:mysyslog /run/mysyslog
+chown -R root:mysyslog /var/log/msl.log
 chmod 664 /var/log/mysyslog/msl.log
 chmod 664 /var/log/msl.log
 chmod 755 /run/mysyslog
-chown -R mysyslog:mysyslog /run/mysyslog
 echo "libmysyslog-daemon has been succesfully installed on your system."
