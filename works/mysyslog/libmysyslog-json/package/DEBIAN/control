@@ -2,7 +2,7 @@ Package: libmysyslog-json
 Version: 1.0
 Section: devel
 Priotity: optional
-Depends: libc6, libjson-c5
+Depends: libc6, libjson-c3
 Architecture: amd64
 Essential: no
 Installed-Size: 20

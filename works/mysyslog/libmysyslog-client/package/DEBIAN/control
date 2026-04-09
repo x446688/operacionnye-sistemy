@@ -2,7 +2,7 @@ Package: libmysyslog-client
 Version: 1.0
 Section: devel
 Priotity: optional
-Depends: libc6, libmysyslog, libmysyslog-text, libmysyslog-json
+Depends: libc6, libmysyslog, libmysyslog-text, libmysyslog-json, libjson-c3
 Architecture: amd64
 Essential: no
 Installed-Size: 20
