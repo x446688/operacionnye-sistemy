@@ -1,0 +1,2 @@
+/etc/mysyslog/mysyslog.conf
+/usr/lib/systemd/system/mysyslog-daemon.service
