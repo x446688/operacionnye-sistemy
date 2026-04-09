@@ -8,7 +8,7 @@ TARGET = mysyslog-client
 $(TARGET): $(SRC)
 	$(CC) -Wall -Wextra -o $@ $(SRC) \
 		-I$(LIB_DIR) -I$(TEXT_DIR) -I$(JSON_DIR)\
-		-L$(LIB_DIR) -L$(TEXT_DIR) -L$(JSON_DIR)\
+		-L$(abspath$(LIB_DIR)) -L$(TEXT_DIR) -L$(JSON_DIR)\
 		-lmysyslog -lmysyslog-text -lmysyslog-json -ldl 
 
 clean:
@@ -21,4 +21,4 @@ deb: $(TARGET)
 	chmod 775 package/DEBIAN/postinst
 	cp $< package/usr/bin
 	dpkg-deb --build ./package
-	mv package.deb $(TARGET).deb
+	mv package.deb libmysyslog-client.deb

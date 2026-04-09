@@ -1,0 +1,11 @@
+Source: mysyslog-meta
+Package: mysyslog-meta
+Version: 1.0
+Section: misc
+Priotity: optional
+Depends: libmysyslog, libmysyslog-json, libmysyslog-text, libmysyslog-client, libmysyslog-daemon
+Architecture: amd64
+Essential: no
+Installed-Size: 0
+Maintainer: Lidskiy A. A. <besplatnii@internet.ru>
+Description: libmysyslog meta package

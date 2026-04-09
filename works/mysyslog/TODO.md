@@ -7,8 +7,8 @@
 - [x] mysyslog-client
 - [x] mysyslog-daemon (check signal handling when revisioning)
 - [x] individual makefiles
-- [ ] mds for all subprojects
+- [x] mds for all subprojects
 - [x] debs with deps
-- [ ] meta mysyslog-meta
-- [ ] repository
-- [ ] fix GNU formatting
+- [x] meta mysyslog-meta
+- [x] repository
+- [x] fix GNU formatting

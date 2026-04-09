@@ -1,0 +1,7 @@
+Origin: Debian
+Codename: 1.7_x86-64
+Suite: stable
+Version: 1.7.3
+Architectures: amd64
+Components: main contrib non-free
+UDebComponents: main

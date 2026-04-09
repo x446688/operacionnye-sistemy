@@ -22,4 +22,4 @@ deb: $(TARGET)
 	chmod 775 package/DEBIAN/postinst
 	cp $< package/usr/bin
 	dpkg-deb --build ./package
-	mv package.deb $(TARGET).deb
+	mv package.deb libmysyslog-daemon.deb
