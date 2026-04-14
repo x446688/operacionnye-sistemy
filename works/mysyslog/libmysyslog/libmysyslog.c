@@ -29,7 +29,7 @@ mysyslog (const char *msg, int level, int driver, int format,
   switch (driver)
     {
     case DRIVER_UNKNOWN:
-      fprintf (stderr, "libmysyslog could not load an availabel driver.");
+      fprintf (stderr, "libmysyslog could not load an available driver.");
       return -1;
     case DRIVER_TEXT:
       handle = dlopen ("libmysyslog-text.so", RTLD_LAZY);

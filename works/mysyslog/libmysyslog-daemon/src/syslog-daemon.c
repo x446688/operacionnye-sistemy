@@ -38,7 +38,7 @@ specified logfile.*/
 #include <errno.h>
 #include <dlfcn.h>
 #include "parser.h"
-#include <libmysyslog.h>
+#include <mysyslog/libmysyslog.h>
 #include <time.h>
 
 static int running = 0;

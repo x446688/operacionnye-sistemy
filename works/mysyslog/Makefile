@@ -1,4 +1,8 @@
-.PHONY: deb-all repo deb
+.PHONY: deb-all repo deb mrproper
+
+deb:
+	dpkg-deb --build ./package
+	mv package.deb mysyslog-meta.deb
 
 deb-all:
 	make deb
@@ -22,7 +26,7 @@ clean:
 	make -C libmysyslog-json clean
 	make -C libmysyslog-text clean
 
-repo: $(deb-all)
+repo: $(deb-all) $(deb)
 	test -d /srv/repo/conf || sudo mkdir -p /srv/repo/conf
 	cp -r repo/conf/* /srv/repo/conf
 	sudo reprepro -b /srv/repo export
@@ -39,7 +43,3 @@ repo: $(deb-all)
 
 mrproper: clean
 	rm -rf /srv/repo/
-
-deb:
-	dpkg-deb --build ./package
-	mv package.deb mysyslog-meta.deb
