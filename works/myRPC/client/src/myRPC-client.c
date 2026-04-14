@@ -12,7 +12,7 @@
 void
 print_help ()
 {
-  printf ("Usage: myrpc-client [OPTIONS]\n");
+  printf ("Usage: myRPC-client [OPTIONS]\n");
   printf ("Options:\n");
   printf ("  -c, --command BASH_COMMAND  Command to execute\n");
   printf ("  -h, --host    IP_ADDRESS    Server IP\n");
@@ -102,7 +102,7 @@ main (int argc, char *argv[])
   struct sockaddr_in servaddr;
   memset (&servaddr, 0, sizeof (servaddr));
   servaddr.sin_family = AF_INET;
-  servaddr.sin_port = port;
+  servaddr.sin_port = htons(port);
   inet_pton (AF_INET, server_ip, &servaddr.sin_addr);
   if (use_stream)
     {
