@@ -15,34 +15,44 @@
 
 volatile sig_atomic_t stop;
 config_t server_config;
-char* socket_type = NULL;
-const char* app_name = NULL;
+char *socket_type = NULL;
+const char *app_name = NULL;
 int port = -1;
 
-int get_parsed_config_options(const char* path) {
+int
+get_parsed_config_options (const char *path)
+{
   config_option_t co;
-  if ((co = read_config_file(path)) == NULL) {
-      perror("read_config_file()");
+  if ((co = read_config_file (path)) == NULL)
+    {
+      perror ("read_config_file()");
       return -1;
-  }
-  while(1) {
-      if (strcmp(co->key, "port") == 0) {
-        port = atoi(co->value);
-        mysyslog(co->value,LOG_LVL_INFO,1,1,"/var/log/myRPC.log");
-      }
-      if (strcmp(co->key, "socket_type") == 0){
-        socket_type = co->value;
-        mysyslog(socket_type,LOG_LVL_INFO,1,1,"/var/log/myRPC.log");
-      }
-      if (port >= 0 && port <= 65536 && socket_type != NULL) {
-        return 0;
-      }
-      if (co->prev != NULL) {
+    }
+  while (1)
+    {
+      if (strcmp (co->key, "port") == 0)
+        {
+          port = atoi (co->value);
+          mysyslog (co->value, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+        }
+      if (strcmp (co->key, "socket_type") == 0)
+        {
+          socket_type = co->value;
+          mysyslog (socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+        }
+      if (port >= 0 && port <= 65536 && socket_type != NULL)
+        {
+          return 0;
+        }
+      if (co->prev != NULL)
+        {
           co = co->prev;
-      } else {
+        }
+      else
+        {
           break;
-      }
-  }
+        }
+    }
   return -1;
 }
 
@@ -68,7 +78,7 @@ user_allowed (const char *username)
   int allowed = 1;
   while (fgets (line, sizeof (line), file))
     {
-      line[strcspn(line, "\n")] = '\0';
+      line[strcspn (line, "\n")] = '\0';
       if (line[0] == '#' && strlen (line) != 0)
         {
           continue;
@@ -84,43 +94,59 @@ user_allowed (const char *username)
 }
 
 int
-execute_command (int argc, const char **argv, char *stdout_file, char *stderr_file)
+execute_command (int argc, const char **argv, char *stdout_file,
+                 char *stderr_file)
 {
-  for (int i = 0; i < argc; ++i) {
-    mysyslog(argv[i], LOG_LVL_WARN, 1, 1, "/var/log/myRPC.log");
-  }
+  for (int i = 0; i < argc; ++i)
+    {
+      mysyslog (argv[i], LOG_LVL_WARN, 1, 1, "/var/log/myRPC.log");
+    }
   int status;
   char cmd[BSIZE];
-  int fd_stdout = open(stdout_file, O_WRONLY);
-  if (fd_stdout == -1) {
-    mysyslog("Failed opening stdout file",LOG_LVL_ERROR,1,1,"/var/log/myRPC.log");
-  }
-  int fd_stderr = open(stderr_file, O_WRONLY);
-  if (fd_stderr == -1) {
-    mysyslog("Failed opening stderr file",LOG_LVL_ERROR,1,1,"/var/log/myRPC.log");
-  }
-  pid_t pid = fork();
-  if (pid == -1) {
-    mysyslog("Error executing command", LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
-  }
-  if (pid == 0) {
-    mysyslog("Child running", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
-    int d2_stdout = dup2(fd_stdout, 1);
-    if (d2_stdout == -1) {
-      mysyslog("Failed copying file descriptor of stdout file",LOG_LVL_ERROR,1,1,"/var/log/myRPC.log");
+  int fd_stdout = open (stdout_file, O_WRONLY);
+  if (fd_stdout == -1)
+    {
+      mysyslog ("Failed opening stdout file", LOG_LVL_ERROR, 1, 1,
+                "/var/log/myRPC.log");
     }
-    int d2_stderr = dup2(fd_stderr, 2);
-    if (d2_stderr == -1) {
-      mysyslog("Failed copying file descriptor of stderr file",LOG_LVL_ERROR,1,1,"/var/log/myRPC.log");
+  int fd_stderr = open (stderr_file, O_WRONLY);
+  if (fd_stderr == -1)
+    {
+      mysyslog ("Failed opening stderr file", LOG_LVL_ERROR, 1, 1,
+                "/var/log/myRPC.log");
     }
-    execvp(argv[0],argv);
-    exit(1);
-  } else {
-    waitpid(pid, &status, 0);
-    mysyslog("Child executed command.",LOG_LVL_INFO,1,1,"/var/log/myRPC.log");
-  }
-  close(fd_stdout);
-  close(fd_stderr);
+  pid_t pid = fork ();
+  if (pid == -1)
+    {
+      mysyslog ("Error executing command", LOG_LVL_ERROR, 1, 1,
+                "/var/log/myRPC.log");
+    }
+  if (pid == 0)
+    {
+      mysyslog ("Child running", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+      int d2_stdout = dup2 (fd_stdout, 1);
+      if (d2_stdout == -1)
+        {
+          mysyslog ("Failed copying file descriptor of stdout file",
+                    LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+        }
+      int d2_stderr = dup2 (fd_stderr, 2);
+      if (d2_stderr == -1)
+        {
+          mysyslog ("Failed copying file descriptor of stderr file",
+                    LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+        }
+      execvp (argv[0], argv);
+      exit (1);
+    }
+  else
+    {
+      waitpid (pid, &status, 0);
+      mysyslog ("Child executed command.", LOG_LVL_INFO, 1, 1,
+                "/var/log/myRPC.log");
+    }
+  close (fd_stdout);
+  close (fd_stderr);
   free (argv);
   return status;
 }
@@ -128,12 +154,14 @@ execute_command (int argc, const char **argv, char *stdout_file, char *stderr_fi
 int
 main (int agrc, char *argv[])
 {
-  if (get_parsed_config_options ("/etc/myRPC/myRPC.conf") != 0){
-    mysyslog("Error getting parsed config options", LOG_LVL_ERROR, 1, 1,"/var/log/myRPC.log");
-    return -1;
-  }
+  if (get_parsed_config_options ("/etc/myRPC/myRPC.conf") != 0)
+    {
+      mysyslog ("Error getting parsed config options", LOG_LVL_ERROR, 1, 1,
+                "/var/log/myRPC.log");
+      return -1;
+    }
 
-  mysyslog(socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+  mysyslog (socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
   int use_stream = strcmp (socket_type, "stream") == 0;
 
   mysyslog ("Server starting...", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
@@ -171,7 +199,7 @@ main (int agrc, char *argv[])
   memset (&servaddr, 0, sizeof (servaddr));
   servaddr.sin_family = AF_INET;
   servaddr.sin_addr.s_addr = INADDR_ANY;
-  servaddr.sin_port = htons(port);
+  servaddr.sin_port = htons (port);
 
   if (bind (sockfd, (struct sockaddr *) &servaddr, sizeof (servaddr)) < 0)
     {
@@ -225,20 +253,25 @@ main (int agrc, char *argv[])
           int cnt_spaces = 0;
           int status;
           char *username = strtok (buffer, ":");
-          char *command = strtok (NULL, ":"); 
+          char *command = strtok (NULL, ":");
           char *sliding_token = strtok (command, " ");
           char **cmd_args = NULL;
 
-          while (sliding_token != NULL) {
-            ++cnt_spaces;
-            cmd_args = realloc(cmd_args, sizeof(char*) * (cnt_spaces)); // what if args == NULL?
-            if (cmd_args == NULL){
-              mysyslog("Memory allocation failed while getting bash command", LOG_LVL_CRITICAL, 1, 1, "/var/log/myRPC.log");
+          while (sliding_token != NULL)
+            {
+              ++cnt_spaces;
+              // what if args == NULL?
+              cmd_args = realloc (cmd_args, sizeof (char *) * (cnt_spaces));
+              if (cmd_args == NULL)
+                {
+                  mysyslog
+                    ("Memory allocation failed while getting bash command",
+                     LOG_LVL_CRITICAL, 1, 1, "/var/log/myRPC.log");
+                }
+              cmd_args[cnt_spaces - 1] = sliding_token;
+              sliding_token = strtok (NULL, " ");
             }
-            cmd_args[cnt_spaces-1] = sliding_token;
-            sliding_token = strtok(NULL, " ");
-          }
-          cmd_args = realloc(cmd_args, sizeof(char*) * cnt_spaces+1);
+          cmd_args = realloc (cmd_args, sizeof (char *) * cnt_spaces + 1);
           cmd_args[cnt_spaces] = NULL;
           char response[BSIZE];
 
@@ -248,22 +281,34 @@ main (int agrc, char *argv[])
                         "/var/log/myRPC.log");
               char stdout_file[] = "/tmp/myRPC_XXXXXX.stdout";
               char stderr_file[] = "/tmp/myRPC_XXXXXX.stderr";
-              int err_m_stdout = mkstemps (stdout_file,7);
-              int err_m_stderr = mkstemps (stderr_file,7); // suffix
-              if (err_m_stdout == -1 ) {
-                printf("%s\n",strerror(errno));
-                mysyslog ("Error creating /tmp/myRPC_XXXXXX.stdout", LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
-              }
-              if (err_m_stderr == -1) {
-                printf("%s\n",strerror(errno));
-                mysyslog ("Error creating /tmp/myRPC_XXXXXX.stderr", LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
-              }
-              int cmd_return_code = execute_command (cnt_spaces, cmd_args, stdout_file, stderr_file); // if cmd_return_code != 0 return stderr else stdout
-              if (cmd_return_code == 0) {
-                mysyslog("Command returned sucess", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
-              } else {
-                mysyslog("Command returned an error...", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
-              }
+              int err_m_stdout = mkstemps (stdout_file, 7);
+              int err_m_stderr = mkstemps (stderr_file, 7); // suffix
+              if (err_m_stdout == -1)
+                {
+                  printf ("%s\n", strerror (errno));
+                  mysyslog ("Error creating /tmp/myRPC_XXXXXX.stdout",
+                            LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+                }
+              if (err_m_stderr == -1)
+                {
+                  printf ("%s\n", strerror (errno));
+                  mysyslog ("Error creating /tmp/myRPC_XXXXXX.stderr",
+                            LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+                }
+              // if cmd_return_code != 0 return stderr else stdout
+              int cmd_return_code =
+                execute_command (cnt_spaces, cmd_args, stdout_file,
+                                 stderr_file);
+              if (cmd_return_code == 0)
+                {
+                  mysyslog ("Command returned sucess", LOG_LVL_INFO, 1, 1,
+                            "/var/log/myRPC.log");
+                }
+              else
+                {
+                  mysyslog ("Command returned an error...", LOG_LVL_INFO, 1,
+                            1, "/var/log/myRPC.log");
+                }
               strcpy (response, cmd_return_code == 0 ? "0" : "1");
               unlink (stdout_file);
               unlink (stderr_file);
@@ -282,7 +327,7 @@ main (int agrc, char *argv[])
         }
       else
         {
-          return -1; // REMOVE_ME
+          return -1;            // REMOVE_ME
           len = sizeof (cliaddr);
           n =
             recvfrom (sockfd, buffer, BSIZE, 0, (struct sockaddr *) &cliaddr,
