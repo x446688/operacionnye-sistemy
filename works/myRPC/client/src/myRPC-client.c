@@ -13,7 +13,7 @@
 void
 print_help ()
 {
-  printf ("Usage: myrpc-client [OPTIONS]\n");
+  printf ("Usage: myRPC-client [OPTIONS]\n");
   printf ("Options:\n");
   printf ("  -c, --command BASH_COMMAND  Command to execute\n");
   printf ("  -h, --host    IP_ADDRESS    Server IP\n");

@@ -9,16 +9,121 @@
 #include <sys/wait.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <getopt.h>
 #include "parser/parser.h"
 #include "myRPC.h"
 #include <mysyslog/libmysyslog.h>
 #include <json-c/json.h>
 
-volatile sig_atomic_t stop;
 config_t server_config;
 char *socket_type = NULL;
 const char *app_name = NULL;
-int port = -1;
+const char *server_log_file = "/var/log/myRPC.log";
+const char *server_conf_file = "/etc/myRPC/myRPC.conf";
+static char *pid_file_name = NULL;
+static int pid_fd = -1;
+static int port = -1;
+static int stop = 0;
+
+void
+print_help ()
+{
+  printf ("Usage: myRPC-server [OPTIONS]\n");
+  printf ("Options:\n");
+  printf ("  -c, --conf-file BASH_COMMAND  Load specified conf file\n");
+  printf
+    ("  -l, --log-file  FILE          Output logs to specified log file\n");
+  printf
+    ("  -d, --daemon                  Run myRPC-server in daemonized mode\n");
+  printf ("  -p, --pid-file                Specify the pid file.\n");
+  printf ("  -h  --help                    Display this help and exit\n");
+}
+
+static void
+daemonize ()
+{
+  pid_t pid = 0;
+  int fd;
+
+  /* Fork off the parent process */
+  pid = fork ();
+
+  /* An error occurred */
+  if (pid < 0)
+    {
+      exit (EXIT_FAILURE);
+    }
+
+  /* Success: Let the parent terminate */
+  if (pid > 0)
+    {
+      exit (EXIT_SUCCESS);
+    }
+
+  /* On success: The child process becomes session leader */
+  if (setsid () < 0)
+    {
+      exit (EXIT_FAILURE);
+    }
+
+  /* Ignore signal sent from child to parent process */
+  signal (SIGCHLD, SIG_IGN);
+
+  /* Fork off for the second time */
+  pid = fork ();
+
+  /* An error occurred */
+  if (pid < 0)
+    {
+      exit (EXIT_FAILURE);
+    }
+
+  /* Success: Let the parent terminate */
+  if (pid > 0)
+    {
+      exit (EXIT_SUCCESS);
+    }
+
+  /* Set new file permissions */
+  umask (0);
+
+  /* Change the working directory to the root directory */
+  /* or another appropriated directory */
+  chdir ("/");
+
+  /* Close all open file descriptors */
+  for (fd = sysconf (_SC_OPEN_MAX); fd > 0; fd--)
+    {
+      close (fd);
+    }
+
+  /* Reopen stdin (fd = 0), stdout (fd = 1), stderr (fd = 2) */
+  stdin = fopen ("/dev/null", "r");
+  stdout = fopen ("/dev/null", "w+");
+  stderr = fopen ("/dev/null", "w+");
+
+  /* Try to write PID of daemon to lockfile */
+  if (pid_file_name != NULL)
+    {
+      char str[256];
+      pid_fd = open (pid_file_name, O_RDWR | O_CREAT, 0640);
+      if (pid_fd < 0)
+        {
+          /* Can't open lockfile */
+          exit (EXIT_FAILURE);
+        }
+      if (lockf (pid_fd, F_TLOCK, 0) < 0)
+        {
+          /* Can't lock file */
+          exit (EXIT_FAILURE);
+        }
+      /* Get current PID */
+      sprintf (str, "%d\n", getpid ());
+      /* Write PID to lockfile */
+      write (pid_fd, str, strlen (str));
+      close (pid_fd);
+    }
+}
 
 int
 get_parsed_config_options (const char *path)
@@ -41,7 +146,7 @@ get_parsed_config_options (const char *path)
           socket_type = co->value;
           mysyslog (socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
         }
-      if (port >= 0 && port <= 65536 && socket_type != NULL)
+      if (port >= 0 && port <= 65535 && socket_type != NULL)
         {
           return 0;
         }
@@ -60,7 +165,36 @@ get_parsed_config_options (const char *path)
 void
 handle_signal (int sig)
 {
-  stop = 1;
+  if (sig == SIGINT)
+    {
+      /* Unlock and close lockfile */
+      if (pid_fd != -1)
+        {
+          lockf (pid_fd, F_ULOCK, 0);
+          close (pid_fd);
+        }
+      /* Try to delete lockfile */
+      if (pid_file_name != NULL)
+        {
+          unlink (pid_file_name);
+        }
+      stop = 1;
+      mysyslog ("Debug: stopping daemon...", LOG_LVL_DEBUG, 1, 1,
+                server_log_file);
+      /* Reset signal handling to default behavior */
+      signal (SIGINT, SIG_DFL);
+    }
+  else if (sig == SIGHUP)
+    {
+      mysyslog ("Debug: reloading daemon config file ...", LOG_LVL_DEBUG, 1,
+                1, server_log_file);
+      get_parsed_config_options (server_conf_file);
+    }
+  else if (sig == SIGCHLD)
+    {
+      mysyslog ("Debug: received SIGCHLD signal", LOG_LVL_DEBUG, 1, 1,
+                server_log_file);
+    }
 }
 
 int
@@ -153,19 +287,64 @@ execute_command (int argc, const char **argv, char *stdout_file,
 }
 
 int
-main (int agrc, char *argv[])
+main (int argc, char *argv[])
 {
-  if (get_parsed_config_options ("/etc/myRPC/myRPC.conf") != 0)
+  static struct option long_options[] = {
+    {"conf-file", required_argument, 0, 'c'},
+    {"log-file", required_argument, 0, 'l'},
+    {"daemon", no_argument, 0, 'd'},
+    {"pid-file", required_argument, 0, 'p'},
+    {"help", no_argument, 0, 0},
+    {0, 0, 0, 0}
+  };
+  int value, option_index = 0, ret;
+  int start_daemonized = 0;
+  /* Try to process all command line arguments */
+  while ((value =
+          getopt_long (argc, argv, "c:l:t:p:d:h", long_options,
+                       &option_index)) != -1)
+    {
+      switch (value)
+        {
+        case 'c':
+          server_conf_file = strdup (optarg);
+          break;
+        case 'l':
+          server_log_file = strdup (optarg);
+          break;
+        case 'p':
+          pid_file_name = strdup (optarg);
+          break;
+        case 'd':
+          start_daemonized = 1;
+          break;
+        case 'h':
+          print_help ();
+        default:
+          print_help ();
+          return 1;
+        }
+    }
+
+  if (start_daemonized == 1)
+    {
+      /* It is also possible to use glibc function deamon()
+       * at this point, but it is useful to customize your daemon. */
+      daemonize ();
+    }
+  mysyslog ("Started server!", LOG_LVL_INFO, 1, 1, server_log_file);
+  signal (SIGINT, handle_signal);
+  signal (SIGHUP, handle_signal);
+  if (get_parsed_config_options (server_conf_file) != 0)
     {
       mysyslog ("Error getting parsed config options", LOG_LVL_ERROR, 1, 1,
                 "/var/log/myRPC.log");
       return -1;
     }
-
   mysyslog (socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
   int use_stream = strcmp (socket_type, "stream") == 0;
-
-  mysyslog ("Server starting...", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+  mysyslog ("Setting up sockets...", LOG_LVL_INFO, 1, 1,
+            "/var/log/myRPC.log");
 
   int sockfd;
   if (use_stream)
@@ -222,7 +401,7 @@ main (int agrc, char *argv[])
                 "/var/log/myRPC.log");
     }
 
-  while (!stop)
+  while (stop == 0)
     {
       char buffer[BSIZE];
       int n;
@@ -271,7 +450,6 @@ main (int agrc, char *argv[])
           while (sliding_token != NULL)
             {
               ++cnt_spaces;
-              // what if args == NULL?
               cmd_args = realloc (cmd_args, sizeof (char *) * (cnt_spaces));
               if (cmd_args == NULL)
                 {
@@ -435,5 +613,15 @@ main (int agrc, char *argv[])
     }
   close (sockfd);
   mysyslog ("Server stopped", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
-  return 0;
+  if (server_conf_file != NULL)
+    free (server_conf_file);
+  if (server_log_file != NULL)
+    free (server_log_file);
+  if (pid_file_name != NULL)
+    free (pid_file_name);
+  if (app_name != NULL)
+    free (app_name);
+  if (socket_type != NULL)
+    free (socket_type);
+  return EXIT_SUCCESS;
 }
