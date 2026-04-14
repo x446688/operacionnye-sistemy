@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <pwd.h>
 #include <mysyslog/libmysyslog.h>
+#include <json-c/json.h>
 
 void
 print_help ()
@@ -76,13 +77,17 @@ main (int argc, char *argv[])
       print_help ();
       return 1;
     }
+  struct json_object *request_root = json_object_new_object ();
   struct passwd *pw = getpwuid (getuid ());
   char *username = pw->pw_name;
+  json_object_object_add (request_root, "login",
+                          json_object_new_string (username));
+  json_object_object_add (request_root, "command",
+                          json_object_new_string (command));
   char request[BSIZE];
-  printf ("Connecting to %s:%d", server_ip, port);
-  snprintf (request, BSIZE, "%s:%s", username, command);
+  snprintf (request, BSIZE, "%s", json_object_to_json_string (request_root));
   mysyslog ("Connecting to the server...", LOG_LVL_INFO, 1, 1,
-            "/var/log/myrpc.log");
+            "/var/log/myRPC.log");
   int sockfd;
   if (use_stream)
     {
@@ -95,14 +100,14 @@ main (int argc, char *argv[])
   if (sockfd < 0)
     {
       mysyslog ("Socket creation failed", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myrpc.log");
+                "/var/log/myRPC.log");
       perror ("Socket creation failed");
       return 1;
     }
   struct sockaddr_in servaddr;
   memset (&servaddr, 0, sizeof (servaddr));
   servaddr.sin_family = AF_INET;
-  servaddr.sin_port = htons(port);
+  servaddr.sin_port = htons (port);
   inet_pton (AF_INET, server_ip, &servaddr.sin_addr);
   if (use_stream)
     {
@@ -110,13 +115,13 @@ main (int argc, char *argv[])
           0)
         {
           mysyslog ("Connection failed", LOG_LVL_ERROR, 1, 1,
-                    "/var/log/myrpc.log");
+                    "/var/log/myRPC.log");
           perror ("Connection failed");
           close (sockfd);
           return 1;
         }
       mysyslog ("Successfully connected to server", LOG_LVL_INFO, 1, 1,
-                "/var/log/myrpc.log");
+                "/var/log/myRPC.log");
       send (sockfd, request, strlen (request), 0);
       char response[BSIZE];
       socklen_t len = sizeof (servaddr);
@@ -126,7 +131,7 @@ main (int argc, char *argv[])
       response[n] = '\0';
       printf ("Server response: %s\n", response);
       mysyslog ("Received server response", LOG_LVL_INFO, 1, 1,
-                "/var/log/myrpc.log");
+                "/var/log/myRPC.log");
     }
   close (sockfd);
   return 0;
