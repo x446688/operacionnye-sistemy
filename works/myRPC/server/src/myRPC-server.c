@@ -12,6 +12,7 @@
 #include "parser/parser.h"
 #include "myRPC.h"
 #include <mysyslog/libmysyslog.h>
+#include <json-c/json.h>
 
 volatile sig_atomic_t stop;
 config_t server_config;
@@ -246,14 +247,24 @@ main (int agrc, char *argv[])
             }
 
           buffer[n] = '\0';
-
+          struct json_tokener *parser = json_tokener_new ();
+          struct json_object *request_root = json_tokener_parse (buffer);
+          struct json_object *received_login = json_object_new_object ();
+          struct json_object *received_command = json_object_new_object ();
+          struct json_object *response_root = json_object_new_object ();
+          mysyslog (json_object_get_string (request_root), LOG_LVL_INFO, 1, 1,
+                    "/var/log/myRPC.log");
+          json_tokener_free (parser);
           mysyslog ("Received request", LOG_LVL_INFO, 1, 1,
                     "/var/log/myRPC.log");
-
+          json_object_object_get_ex (request_root, "login", &received_login);
+          json_object_object_get_ex (request_root, "command",
+                                     &received_command);
           int cnt_spaces = 0;
           int status;
-          char *username = strtok (buffer, ":");
-          char *command = strtok (NULL, ":");
+          // обышка
+          char *username = json_object_get_string (received_login);
+          char *command = json_object_get_string (received_command);
           char *sliding_token = strtok (command, " ");
           char **cmd_args = NULL;
 
@@ -274,6 +285,7 @@ main (int agrc, char *argv[])
           cmd_args = realloc (cmd_args, sizeof (char *) * cnt_spaces + 1);
           cmd_args[cnt_spaces] = NULL;
           char response[BSIZE];
+          char result[BSIZE];
 
           if (user_allowed (username) == 0)
             {
@@ -299,17 +311,49 @@ main (int agrc, char *argv[])
               int cmd_return_code =
                 execute_command (cnt_spaces, cmd_args, stdout_file,
                                  stderr_file);
+              json_object_object_add (response_root, "code",
+                                      json_object_new_int (cmd_return_code ==
+                                                           0 ? cmd_return_code
+                                                           : 1));
               if (cmd_return_code == 0)
                 {
                   mysyslog ("Command returned sucess", LOG_LVL_INFO, 1, 1,
                             "/var/log/myRPC.log");
+                  FILE *f = fopen (stdout_file, "r");
+                  if (f)
+                    {
+                      size_t read_bytes = fread (result, 1, BSIZE, f);
+                      result[read_bytes] = '\0';
+                      fclose (f);
+                    }
+                  else
+                    {
+                      strcpy (result, "Error reading stdout file.");
+                      mysyslog ("Error reading stdout file", LOG_LVL_ERROR, 1,
+                                1, "/var/log/myRPC.log");
+                    }
                 }
               else
                 {
                   mysyslog ("Command returned an error...", LOG_LVL_INFO, 1,
                             1, "/var/log/myRPC.log");
+                  FILE *f = fopen (stderr_file, "r");
+                  if (f)
+                    {
+                      size_t read_bytes = fread (result, 1, BSIZE, f);
+                      result[read_bytes] = '\0';
+                      fclose (f);
+                    }
+                  else
+                    {
+                      strcpy (result, "Error reading stderr file.");
+                      mysyslog ("Error reading stderr file", LOG_LVL_ERROR, 1,
+                                1, "/var/log/myRPC.log");
+                    }
                 }
-              strcpy (response, cmd_return_code == 0 ? "0" : "1");
+              json_object_object_add (response_root, "result",
+                                      json_object_new_string (result));
+              strcpy (response, json_object_to_json_string (response_root));
               unlink (stdout_file);
               unlink (stderr_file);
             }

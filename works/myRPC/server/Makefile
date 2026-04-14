@@ -9,4 +9,4 @@ all: src/myRPC-server.c src/myRPC.h src/parser/parser.h src/mysyslog/libmysyslog
 	chown -R `whoami` /etc/myRPC
 	echo "port = 7777" > /etc/myRPC/myRPC.conf
 	echo "socket_type = stream" >> /etc/myRPC/myRPC.conf
-	gcc src/myRPC-server.c -o $(TARGET) -lmysyslog
+	gcc src/myRPC-server.c -o $(TARGET) -lmysyslog -ljson-c
