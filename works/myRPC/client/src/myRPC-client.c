@@ -80,8 +80,10 @@ main (int argc, char *argv[])
   struct json_object *request_root = json_object_new_object ();
   struct passwd *pw = getpwuid (getuid ());
   char *username = pw->pw_name;
-  json_object_object_add (request_root, "login", json_object_new_string (username));
-  json_object_object_add (request_root, "command", json_object_new_string (command));
+  json_object_object_add (request_root, "login",
+                          json_object_new_string (username));
+  json_object_object_add (request_root, "command",
+                          json_object_new_string (command));
   char request[BSIZE];
   snprintf (request, BSIZE, "%s", json_object_to_json_string (request_root));
   mysyslog ("Connecting to the server...", LOG_LVL_INFO, 1, 1,
@@ -105,7 +107,7 @@ main (int argc, char *argv[])
   struct sockaddr_in servaddr;
   memset (&servaddr, 0, sizeof (servaddr));
   servaddr.sin_family = AF_INET;
-  servaddr.sin_port = htons(port);
+  servaddr.sin_port = htons (port);
   inet_pton (AF_INET, server_ip, &servaddr.sin_addr);
   if (use_stream)
     {
