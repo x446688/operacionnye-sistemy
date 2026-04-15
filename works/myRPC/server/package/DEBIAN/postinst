@@ -1,0 +1,12 @@
+#!/bin/bash
+test -d /etc/myRPC || mkdir /etc/myRPC 
+test -d /run/myRPC-server || mkdir /run/myRPC-server
+touch /var/log/myRPC.log
+chmod -R 755 /etc/myRPC
+chmod -R 775 /var/log/myRPC.log
+getent group myrpc || addgroup --system myrpc
+id myrpc || adduser --system --ingroup myrpc myrpc
+chown -R root:myrpc /var/log/myRPC.log
+chown -R myrpc:myrpc /run/myRPC-server
+chmod 755 /run/myRPC-server
+echo "myRPC-server has been succesfully installed on your system."

@@ -1,0 +1,4 @@
+#!/bin/bash
+touch /var/log/mysyslog/myRPC.log
+chmod -R 775 /var/log/myRPC.log
+echo "myRPC has been succesfully installed on your system."

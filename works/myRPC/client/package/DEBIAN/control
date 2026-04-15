@@ -1,0 +1,10 @@
+Package: myRPC-client
+Version: 1.0
+Section: devel
+Priotity: optional
+Depends: libc6, libmysyslog, libmysyslog-text, libjson-c-dev
+Architecture: amd64
+Essential: no
+Installed-Size: 20
+Maintainer: Lidskiy A. A. <besplatnii@internet.ru>
+Description: myRPC-client is a cli utility that allows you to send commands to myRPC-server
