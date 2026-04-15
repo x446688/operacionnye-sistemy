@@ -1,0 +1,16 @@
+[Unit]
+Description=myRPC-server
+
+[Service]
+Type=forking
+PIDFile=/run/myRPC-server/myRPC-server.pid
+ExecStart=/usr/bin/myRPC-server \
+	--conf-file /etc/myRPC/myRPC.conf \
+	--log-file /var/log/myRPC.log \
+	--pid-file /run/myRPC-server/myRPC-server.pid \
+	--daemon
+User=myrpc
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
