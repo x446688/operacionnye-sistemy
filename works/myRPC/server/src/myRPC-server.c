@@ -13,7 +13,6 @@
 #include "parser/parser.h"
 #include "myRPC.h"
 #include <mysyslog/libmysyslog.h>
-#include <json-c/json.h>
 
 config_t server_config;
 char *socket_type = NULL;
@@ -26,6 +25,8 @@ static int port = -1;
 static int status = NULL;
 static int stop = 0;
 static int xtreme_mode = 0;
+
+#define _LOG(str, ll) mysyslog(str, ll, 1, 1, server_log_file)
 
 void
 print_help ()
@@ -142,12 +143,12 @@ get_parsed_config_options (const char *path)
       if (strcmp (co->key, "port") == 0)
         {
           port = atoi (co->value);
-          mysyslog (co->value, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+          _LOG (co->value, LOG_LVL_INFO);
         }
       if (strcmp (co->key, "socket_type") == 0)
         {
           socket_type = co->value;
-          mysyslog (socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+          _LOG (socket_type, LOG_LVL_INFO);
         }
       if (port >= 0 && port <= 65535 && socket_type != NULL)
         {
@@ -182,21 +183,18 @@ handle_signal (int sig)
           unlink (pid_file_name);
         }
       stop = 1;
-      mysyslog ("Debug: stopping daemon...", LOG_LVL_DEBUG, 1, 1,
-                server_log_file);
+      _LOG ("Debug: stopping daemon...", LOG_LVL_DEBUG);
       /* Reset signal handling to default behavior */
       signal (SIGINT, SIG_DFL);
     }
   else if (sig == SIGHUP)
     {
-      mysyslog ("Debug: reloading daemon config file ...", LOG_LVL_DEBUG, 1,
-                1, server_log_file);
+      _LOG ("Debug: reloading daemon config file ...", LOG_LVL_DEBUG);
       get_parsed_config_options (server_conf_file);
     }
   else if (sig == SIGCHLD)
     {
-      mysyslog ("Debug: received SIGCHLD signal", LOG_LVL_DEBUG, 1, 1,
-                server_log_file);
+      _LOG ("Debug: received SIGCHLD signal", LOG_LVL_DEBUG);
     }
 }
 
@@ -206,8 +204,7 @@ user_allowed (const char *username)
   FILE *file = fopen ("/etc/myRPC/users.conf", "r");
   if (!file)
     {
-      mysyslog ("Failed to open users.conf", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Failed to open users.conf", LOG_LVL_ERROR);
       perror ("Failed to open users.conf");
       return 0;
     }
@@ -240,35 +237,32 @@ execute_command (int argc, const char **argv, char *stdout_file,
   int fd_stdout = open (stdout_file, O_WRONLY);
   if (fd_stdout == -1)
     {
-      mysyslog ("Failed opening stdout file", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Failed opening stdout file", LOG_LVL_ERROR);
     }
   int fd_stderr = open (stderr_file, O_WRONLY);
   if (fd_stderr == -1)
     {
-      mysyslog ("Failed opening stderr file", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Failed opening stderr file", LOG_LVL_ERROR);
     }
   pid_t pid = fork ();
   if (pid == -1)
     {
-      mysyslog ("Error executing command", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Error executing command", LOG_LVL_ERROR);
     }
   if (pid == 0)
     {
-      mysyslog ("Child running", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+      _LOG ("Child running", LOG_LVL_INFO);
       int d2_stdout = dup2 (fd_stdout, 1);
       if (d2_stdout == -1)
         {
-          mysyslog ("Failed copying file descriptor of stdout file",
-                    LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+          _LOG ("Failed copying file descriptor of stdout file",
+                LOG_LVL_ERROR);
         }
       int d2_stderr = dup2 (fd_stderr, 2);
       if (d2_stderr == -1)
         {
-          mysyslog ("Failed copying file descriptor of stderr file",
-                    LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+          _LOG ("Failed copying file descriptor of stderr file",
+                LOG_LVL_ERROR);
         }
       execvp (argv[0], argv);
       if (errno = 2)
@@ -278,9 +272,7 @@ execute_command (int argc, const char **argv, char *stdout_file,
   else
     {
       waitpid (pid, &status, 0);
-      mysyslog (strerror (errno), LOG_LVL_CRITICAL, 1, 1, server_log_file);
-      mysyslog ("Child executed command.", LOG_LVL_INFO, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Child executed command.", LOG_LVL_INFO);
     }
   close (fd_stdout);
   close (fd_stderr);
@@ -322,10 +314,8 @@ main (int argc, char *argv[])
           start_daemonized = 1;
           break;
         case 'x':
-          mysyslog ("EXTREME_MODE=True", LOG_LVL_DEBUG, 1, 1,
-                    server_log_file);
+          _LOG ("extreme_mode on", LOG_LVL_DEBUG);
           xtreme_mode = 1;
-          break;
         case 'h':
           print_help ();
         default:
@@ -341,19 +331,17 @@ main (int argc, char *argv[])
       daemonize ();
       signal (SIGCHLD, SIG_DFL);
     }
-  mysyslog ("Started server!", LOG_LVL_INFO, 1, 1, server_log_file);
+  _LOG ("Started server!", LOG_LVL_INFO);
   signal (SIGINT, handle_signal);
   signal (SIGHUP, handle_signal);
   if (get_parsed_config_options (server_conf_file) != 0)
     {
-      mysyslog ("Error getting parsed config options", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Error getting parsed config options", LOG_LVL_ERROR);
       return -1;
     }
-  mysyslog (socket_type, LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+  _LOG (socket_type, LOG_LVL_INFO);
   int use_stream = strcmp (socket_type, "stream") == 0;
-  mysyslog ("Setting up sockets...", LOG_LVL_INFO, 1, 1,
-            "/var/log/myRPC.log");
+  _LOG ("Setting up sockets...", LOG_LVL_INFO);
 
   int sockfd;
   if (use_stream)
@@ -367,8 +355,7 @@ main (int argc, char *argv[])
 
   if (sockfd < 0)
     {
-      mysyslog ("Socket creation failed", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Socket creation failed", LOG_LVL_ERROR);
       perror ("Socket creation failed");
       return 1;
     }
@@ -376,8 +363,7 @@ main (int argc, char *argv[])
   int opt = 1;
   if (setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (opt)) < 0)
     {
-      mysyslog ("setssockopt failed", LOG_LVL_ERROR, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("setssockopt failed", LOG_LVL_ERROR);
       perror ("setssockopt failed");
       close (sockfd);
       return 1;
@@ -392,7 +378,7 @@ main (int argc, char *argv[])
 
   if (bind (sockfd, (struct sockaddr *) &servaddr, sizeof (servaddr)) < 0)
     {
-      mysyslog ("Bind failed", LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+      _LOG ("Bind failed", LOG_LVL_ERROR);
       perror ("Bind failed");
       close (sockfd);
       return 1;
@@ -401,13 +387,11 @@ main (int argc, char *argv[])
   if (use_stream)
     {
       listen (sockfd, 5);
-      mysyslog ("Server listening (stream)", LOG_LVL_INFO, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Server listening (stream)", LOG_LVL_INFO);
     }
   else
     {
-      mysyslog ("Server listening (datagram)", LOG_LVL_INFO, 1, 1,
-                "/var/log/myRPC.log");
+      _LOG ("Server listening (datagram)", LOG_LVL_INFO);
     }
 
   while (stop == 0)
@@ -421,8 +405,7 @@ main (int argc, char *argv[])
           int connfd = accept (sockfd, (struct sockaddr *) &cliaddr, &len);
           if (connfd < 0)
             {
-              mysyslog ("Accept failed", LOG_LVL_ERROR, 1, 1,
-                        "/var/log/myRPC.log");
+              _LOG ("Accept failed", LOG_LVL_ERROR);
               perror ("Accept failed");
               continue;
             }
@@ -461,9 +444,9 @@ main (int argc, char *argv[])
               cmd_args = realloc (cmd_args, sizeof (char *) * (cnt_spaces));
               if (cmd_args == NULL)
                 {
-                  mysyslog
+                  _LOG
                     ("Memory allocation failed while getting bash command",
-                     LOG_LVL_CRITICAL, 1, 1, "/var/log/myRPC.log");
+                     LOG_LVL_CRITICAL);
                 }
               cmd_args[cnt_spaces - 1] = sliding_token;
               sliding_token = strtok (NULL, " ");
@@ -475,8 +458,7 @@ main (int argc, char *argv[])
 
           if (user_allowed (username) == 0)
             {
-              mysyslog ("User allowed", LOG_LVL_INFO, 1, 1,
-                        "/var/log/myRPC.log");
+              _LOG ("User allowed", LOG_LVL_INFO);
               char stdout_file[] = "/tmp/myRPC_XXXXXX.stdout";
               char stderr_file[] = "/tmp/myRPC_XXXXXX.stderr";
               int err_m_stdout = mkstemps (stdout_file, 7);
@@ -484,29 +466,26 @@ main (int argc, char *argv[])
               if (err_m_stdout == -1)
                 {
                   printf ("%s\n", strerror (errno));
-                  mysyslog ("Error creating /tmp/myRPC_XXXXXX.stdout",
-                            LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+                  _LOG ("Error creating /tmp/myRPC_XXXXXX.stdout",
+                        LOG_LVL_ERROR);
                 }
               if (err_m_stderr == -1)
                 {
                   printf ("%s\n", strerror (errno));
-                  mysyslog ("Error creating /tmp/myRPC_XXXXXX.stderr",
-                            LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+                  _LOG ("Error creating /tmp/myRPC_XXXXXX.stderr",
+                        LOG_LVL_ERROR);
                 }
               // if cmd_return_code != 0 return stderr else stdout
               int cmd_return_code =
                 execute_command (cnt_spaces, cmd_args, stdout_file,
                                  stderr_file);
-              mysyslog (strerror (errno), LOG_LVL_WARN, 1, 1,
-                        server_log_file);
               json_object_object_add (response_root, "code",
                                       json_object_new_int (cmd_return_code ==
                                                            0 ? cmd_return_code
                                                            : 1));
               if (cmd_return_code == 0)
                 {
-                  mysyslog ("Command returned sucess", LOG_LVL_INFO, 1, 1,
-                            "/var/log/myRPC.log");
+                  _LOG ("Command returned sucess", LOG_LVL_INFO);
                   FILE *f = fopen (stdout_file, "r");
                   if (f)
                     {
@@ -517,14 +496,12 @@ main (int argc, char *argv[])
                   else
                     {
                       strcpy (result, "Error reading stdout file.");
-                      mysyslog ("Error reading stdout file", LOG_LVL_ERROR, 1,
-                                1, "/var/log/myRPC.log");
+                      _LOG ("Error reading stdout file", LOG_LVL_ERROR);
                     }
                 }
               else
                 {
-                  mysyslog ("Command returned an error...", LOG_LVL_INFO, 1,
-                            1, "/var/log/myRPC.log");
+                  _LOG ("Command returned an error...", LOG_LVL_INFO);
                   FILE *f;
                   if (xtreme_mode == 1)
                     {
@@ -543,8 +520,7 @@ main (int argc, char *argv[])
                   else
                     {
                       strcpy (result, "Error reading stderr file.");
-                      mysyslog ("Error reading stderr file", LOG_LVL_ERROR, 1,
-                                1, "/var/log/myRPC.log");
+                      _LOG ("Error reading stderr file", LOG_LVL_ERROR);
                     }
                 }
               json_object_object_add (response_root, "result",
@@ -557,8 +533,7 @@ main (int argc, char *argv[])
             {
               snprintf (response, BSIZE, "1: User '%s' is not allowed.",
                         username);
-              mysyslog ("User not allowed", LOG_LVL_WARN, 1, 1,
-                        "/var/log/myRPC.log");
+              _LOG ("User not allowed", LOG_LVL_WARN);
             }
 
           send (connfd, response, strlen (response), 0);
@@ -579,8 +554,7 @@ main (int argc, char *argv[])
 
           buffer[n] = '\0';
 
-          mysyslog ("Client login request", LOG_LVL_INFO, 1, 1,
-                    "/var/log/myRPC.log");
+          _LOG ("Client login request", LOG_LVL_INFO);
 
           char *username = strtok (buffer, ":");
           char *command = strtok (NULL, "");
@@ -593,8 +567,7 @@ main (int argc, char *argv[])
 
           if (user_allowed (username) == 0)
             {
-              mysyslog ("User allowed", LOG_LVL_INFO, 1, 1,
-                        "/var/log/myRPC.log");
+              _LOG ("User allowed", LOG_LVL_INFO);
               char stdout_file[] = "/tmp/myRPC_XXXXXX.stdout";
               char stderr_file[] = "/tmp/myRPC_XXXXXX.stderr";
               mkstemp (stdout_file);
@@ -606,14 +579,12 @@ main (int argc, char *argv[])
                   size_t read_bytes = fread (response, 1, BSIZE, f);
                   response[read_bytes] = '\0';
                   fclose (f);
-                  mysyslog ("Command executed successfully", LOG_LVL_INFO, 1,
-                            1, "/var/log/myRPC.log");
+                  _LOG ("Command executed successfully", LOG_LVL_INFO);
                 }
               else
                 {
                   strcpy (response, "Error reading stdout file");
-                  mysyslog ("Error reading stdout file", LOG_LVL_ERROR, 1, 1,
-                            "/var/log/myRPC.log");
+                  _LOG ("Error reading stdout file", LOG_LVL_ERROR);
                 }
               remove (stdout_file);
               remove (stderr_file);
@@ -622,15 +593,14 @@ main (int argc, char *argv[])
             {
               snprintf (response, BSIZE, "1: User '%s' is not allowed",
                         username);
-              mysyslog ("User not allowed", LOG_LVL_WARN, 1, 1,
-                        "/var/log/myRPC.log");
+              _LOG ("User not allowed", LOG_LVL_WARN);
             }
           sendto (sockfd, response, strlen (response), 0,
                   (struct sockaddr *) &cliaddr, len);
         }
     }
   close (sockfd);
-  mysyslog ("Server stopped", LOG_LVL_INFO, 1, 1, "/var/log/myRPC.log");
+  _LOG ("Server stopped", LOG_LVL_INFO);
   if (server_conf_file != NULL)
     free (server_conf_file);
   if (server_log_file != NULL)
