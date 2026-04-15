@@ -122,17 +122,38 @@ main (int argc, char *argv[])
         }
       mysyslog ("Successfully connected to server", LOG_LVL_INFO, 1, 1,
                 "/var/log/myRPC.log");
-      send (sockfd, request, strlen (request), 0);
-      char response[BSIZE];
-      socklen_t len = sizeof (servaddr);
-      int n =
-        recvfrom (sockfd, response, BSIZE, 0, (struct sockaddr *) &servaddr,
-                  &len);
-      response[n] = '\0';
-      printf ("Server response: %s\n", response);
-      mysyslog ("Received server response", LOG_LVL_INFO, 1, 1,
-                "/var/log/myRPC.log");
+      if (send (sockfd, request, strlen (request), 0) == -1)
+        {
+          mysyslog ("Send failed", LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
+          perror ("Send failed");
+          close (sockfd);
+          return 1;
+        }
     }
+  else
+    {
+      mysyslog ("Successfully connected to server", LOG_LVL_INFO, 1, 1,
+                "/var/log/myRPC.log");
+      if (sendto
+          (sockfd, request, strlen (request), 0,
+           (struct sockaddr *) (&servaddr),
+           (socklen_t) sizeof (struct sockaddr_in)) == -1)
+        {
+          mysyslog ("Sendto failed", LOG_LVL_ERROR, 1, 1,
+                    "/var/log/myRPC.log");
+          perror ("Sendto failed");
+          close (sockfd);
+          return 1;
+        }
+    }
+  char response[BSIZE];
+  socklen_t len = sizeof (servaddr);
+  int n = recvfrom (sockfd, response, BSIZE, 0, (struct sockaddr *) &servaddr,
+                    &len);
+  response[n] = '\0';
+  printf ("Server response: %s\n", response);
+  mysyslog ("Received server response", LOG_LVL_INFO, 1, 1,
+            "/var/log/myRPC.log");
   close (sockfd);
   return 0;
 }

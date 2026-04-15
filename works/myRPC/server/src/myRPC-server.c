@@ -316,6 +316,7 @@ main (int argc, char *argv[])
         case 'x':
           _LOG ("extreme_mode on", LOG_LVL_DEBUG);
           xtreme_mode = 1;
+          break;
         case 'h':
           print_help ();
         default:
@@ -423,11 +424,9 @@ main (int argc, char *argv[])
           struct json_object *received_login = json_object_new_object ();
           struct json_object *received_command = json_object_new_object ();
           struct json_object *response_root = json_object_new_object ();
-          mysyslog (json_object_get_string (request_root), LOG_LVL_INFO, 1, 1,
-                    "/var/log/myRPC.log");
+          _LOG (json_object_get_string (request_root), LOG_LVL_INFO);
           json_tokener_free (parser);
-          mysyslog ("Received request", LOG_LVL_INFO, 1, 1,
-                    "/var/log/myRPC.log");
+          _LOG ("Received request", LOG_LVL_INFO);
           json_object_object_get_ex (request_root, "login", &received_login);
           json_object_object_get_ex (request_root, "command",
                                      &received_command);
@@ -526,7 +525,7 @@ main (int argc, char *argv[])
               json_object_object_add (response_root, "result",
                                       json_object_new_string (result));
               strcpy (response, json_object_to_json_string (response_root));
-              //unlink (stdout_file);
+              unlink (stdout_file);
               unlink (stderr_file);
             }
           else
@@ -542,13 +541,13 @@ main (int argc, char *argv[])
         }
       else
         {
-          return -1;            // REMOVE_ME
           len = sizeof (cliaddr);
           n =
             recvfrom (sockfd, buffer, BSIZE, 0, (struct sockaddr *) &cliaddr,
                       &len);
           if (n <= 0)
             {
+              _LOG ("recv size <= 0", LOG_LVL_CRITICAL);
               continue;
             }
 
@@ -556,42 +555,117 @@ main (int argc, char *argv[])
 
           _LOG ("Client login request", LOG_LVL_INFO);
 
-          char *username = strtok (buffer, ":");
-          char *command = strtok (NULL, "");
-          if (command)
+          struct json_tokener *parser = json_tokener_new ();
+          struct json_object *request_root = json_tokener_parse (buffer);
+          struct json_object *received_login = json_object_new_object ();
+          struct json_object *received_command = json_object_new_object ();
+          struct json_object *response_root = json_object_new_object ();
+          _LOG (json_object_get_string (request_root), LOG_LVL_INFO);
+          json_tokener_free (parser);
+          _LOG ("Received request", LOG_LVL_INFO);
+          json_object_object_get_ex (request_root, "login", &received_login);
+          json_object_object_get_ex (request_root, "command",
+                                     &received_command);
+          int cnt_spaces = 0;
+          int status;
+          char *username = json_object_get_string (received_login);
+          char *command = json_object_get_string (received_command);
+          char *sliding_token = strtok (command, " ");
+          char **cmd_args = NULL;
+          while (sliding_token != NULL)
             {
-              while (*command == ' ')
-                command++;
+              ++cnt_spaces;
+              cmd_args = realloc (cmd_args, sizeof (char *) * (cnt_spaces));
+              if (cmd_args == NULL)
+                {
+                  _LOG
+                    ("Memory allocation failed while getting bash command",
+                     LOG_LVL_CRITICAL);
+                }
+              cmd_args[cnt_spaces - 1] = sliding_token;
+              sliding_token = strtok (NULL, " ");
             }
+          cmd_args = realloc (cmd_args, sizeof (char *) * cnt_spaces + 1);
+          cmd_args[cnt_spaces] = NULL;
           char response[BSIZE];
+          char result[BSIZE];
 
           if (user_allowed (username) == 0)
             {
               _LOG ("User allowed", LOG_LVL_INFO);
               char stdout_file[] = "/tmp/myRPC_XXXXXX.stdout";
               char stderr_file[] = "/tmp/myRPC_XXXXXX.stderr";
-              mkstemp (stdout_file);
-              mkstemp (stderr_file);
-              // execute_command (command, stdout_file, stderr_file);
-              FILE *f = fopen (stdout_file, "r");
-              if (f)
+              int err_m_stdout = mkstemps (stdout_file, 7);
+              int err_m_stderr = mkstemps (stderr_file, 7); // suffix
+              if (err_m_stdout == -1)
                 {
-                  size_t read_bytes = fread (response, 1, BSIZE, f);
-                  response[read_bytes] = '\0';
-                  fclose (f);
-                  _LOG ("Command executed successfully", LOG_LVL_INFO);
+                  printf ("%s\n", strerror (errno));
+                  _LOG ("Error creating /tmp/myRPC_XXXXXX.stdout",
+                        LOG_LVL_ERROR);
+                }
+              if (err_m_stderr == -1)
+                {
+                  printf ("%s\n", strerror (errno));
+                  _LOG ("Error creating /tmp/myRPC_XXXXXX.stderr",
+                        LOG_LVL_ERROR);
+                }
+              // if cmd_return_code != 0 return stderr else stdout
+              int cmd_return_code =
+                execute_command (cnt_spaces, cmd_args, stdout_file,
+                                 stderr_file);
+              json_object_object_add (response_root, "code",
+                                      json_object_new_int (cmd_return_code ==
+                                                           0 ? cmd_return_code
+                                                           : 1));
+              if (cmd_return_code == 0)
+                {
+                  _LOG ("Command returned sucess", LOG_LVL_INFO);
+                  FILE *f = fopen (stdout_file, "r");
+                  if (f)
+                    {
+                      size_t read_bytes = fread (result, 1, BSIZE, f);
+                      result[read_bytes] = '\0';
+                      fclose (f);
+                    }
+                  else
+                    {
+                      strcpy (result, "Error reading stdout file.");
+                      _LOG ("Error reading stdout file", LOG_LVL_ERROR);
+                    }
                 }
               else
                 {
-                  strcpy (response, "Error reading stdout file");
-                  _LOG ("Error reading stdout file", LOG_LVL_ERROR);
+                  _LOG ("Command returned an error...", LOG_LVL_INFO);
+                  FILE *f;
+                  if (xtreme_mode == 1)
+                    {
+                      f = fopen (stdout_file, "r");
+                    }
+                  else
+                    {
+                      f = fopen (stderr_file, "r");
+                    }
+                  if (f)
+                    {
+                      size_t read_bytes = fread (result, 1, BSIZE, f);
+                      result[read_bytes] = '\0';
+                      fclose (f);
+                    }
+                  else
+                    {
+                      strcpy (result, "Error reading stderr file.");
+                      _LOG ("Error reading stderr file", LOG_LVL_ERROR);
+                    }
                 }
-              remove (stdout_file);
-              remove (stderr_file);
+              json_object_object_add (response_root, "result",
+                                      json_object_new_string (result));
+              strcpy (response, json_object_to_json_string (response_root));
+              unlink (stdout_file);
+              unlink (stderr_file);
             }
           else
             {
-              snprintf (response, BSIZE, "1: User '%s' is not allowed",
+              snprintf (response, BSIZE, "1: User '%s' is not allowed.",
                         username);
               _LOG ("User not allowed", LOG_LVL_WARN);
             }
