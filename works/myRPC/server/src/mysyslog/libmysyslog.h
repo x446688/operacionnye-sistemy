@@ -8,11 +8,11 @@ for demonstration purposes. Libmysyslog is provided in another project.
 For more information please check out libmysyslog.
 
 */
-
 #pragma once
 #ifndef BSIZE
 #define BSIZE 4096
 #endif
+#define _log_(type, lvl) type 
 extern char *__progname;
 const char *log_level_strings[] = {
   "   DEBUG",
