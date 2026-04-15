@@ -271,14 +271,14 @@ execute_command (int argc, const char **argv, char *stdout_file,
                     LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
         }
       execvp (argv[0], argv);
-      if (errno = 2) 
-        printf("Command '%s' is not a valid command.", argv[0]);
+      if (errno = 2)
+        printf ("Command '%s' is not a valid command.", argv[0]);
       exit (EXIT_FAILURE);
     }
   else
     {
       waitpid (pid, &status, 0);
-      mysyslog(strerror(errno), LOG_LVL_CRITICAL, 1, 1, server_log_file);
+      mysyslog (strerror (errno), LOG_LVL_CRITICAL, 1, 1, server_log_file);
       mysyslog ("Child executed command.", LOG_LVL_INFO, 1, 1,
                 "/var/log/myRPC.log");
     }
@@ -322,7 +322,8 @@ main (int argc, char *argv[])
           start_daemonized = 1;
           break;
         case 'x':
-          mysyslog("EXTREME_MODE=True", LOG_LVL_DEBUG, 1, 1, server_log_file);
+          mysyslog ("EXTREME_MODE=True", LOG_LVL_DEBUG, 1, 1,
+                    server_log_file);
           xtreme_mode = 1;
           break;
         case 'h':
@@ -338,7 +339,7 @@ main (int argc, char *argv[])
       /* It is also possible to use glibc function deamon()
        * at this point, but it is useful to customize your daemon. */
       daemonize ();
-      signal(SIGCHLD, SIG_DFL);
+      signal (SIGCHLD, SIG_DFL);
     }
   mysyslog ("Started server!", LOG_LVL_INFO, 1, 1, server_log_file);
   signal (SIGINT, handle_signal);
@@ -496,7 +497,8 @@ main (int argc, char *argv[])
               int cmd_return_code =
                 execute_command (cnt_spaces, cmd_args, stdout_file,
                                  stderr_file);
-              mysyslog(strerror(errno), LOG_LVL_WARN, 1, 1, server_log_file);
+              mysyslog (strerror (errno), LOG_LVL_WARN, 1, 1,
+                        server_log_file);
               json_object_object_add (response_root, "code",
                                       json_object_new_int (cmd_return_code ==
                                                            0 ? cmd_return_code
@@ -524,11 +526,14 @@ main (int argc, char *argv[])
                   mysyslog ("Command returned an error...", LOG_LVL_INFO, 1,
                             1, "/var/log/myRPC.log");
                   FILE *f;
-                  if (xtreme_mode == 1) {
-                    f = fopen (stdout_file, "r");
-                  } else {
-                    f = fopen (stderr_file, "r");
-                  }
+                  if (xtreme_mode == 1)
+                    {
+                      f = fopen (stdout_file, "r");
+                    }
+                  else
+                    {
+                      f = fopen (stderr_file, "r");
+                    }
                   if (f)
                     {
                       size_t read_bytes = fread (result, 1, BSIZE, f);
