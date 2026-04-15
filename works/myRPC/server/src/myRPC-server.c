@@ -23,7 +23,9 @@ const char *server_conf_file = "/etc/myRPC/myRPC.conf";
 static char *pid_file_name = NULL;
 static int pid_fd = -1;
 static int port = -1;
+static int status = NULL;
 static int stop = 0;
+static int xtreme_mode = 0;
 
 void
 print_help ()
@@ -35,8 +37,9 @@ print_help ()
     ("  -l, --log-file  FILE          Output logs to specified log file\n");
   printf
     ("  -d, --daemon                  Run myRPC-server in daemonized mode\n");
-  printf ("  -p, --pid-file                Specify the pid file.\n");
+  printf ("  -p, --pid-file                Specify the pid file\n");
   printf ("  -h  --help                    Display this help and exit\n");
+  printf ("  -x, --xtreme                  Force return stdout to result\n");
 }
 
 static void
@@ -232,10 +235,6 @@ int
 execute_command (int argc, const char **argv, char *stdout_file,
                  char *stderr_file)
 {
-  for (int i = 0; i < argc; ++i)
-    {
-      mysyslog (argv[i], LOG_LVL_WARN, 1, 1, "/var/log/myRPC.log");
-    }
   int status;
   char cmd[BSIZE];
   int fd_stdout = open (stdout_file, O_WRONLY);
@@ -272,11 +271,14 @@ execute_command (int argc, const char **argv, char *stdout_file,
                     LOG_LVL_ERROR, 1, 1, "/var/log/myRPC.log");
         }
       execvp (argv[0], argv);
-      exit (1);
+      if (errno = 2) 
+        printf("Command '%s' is not a valid command.", argv[0]);
+      exit (EXIT_FAILURE);
     }
   else
     {
       waitpid (pid, &status, 0);
+      mysyslog(strerror(errno), LOG_LVL_CRITICAL, 1, 1, server_log_file);
       mysyslog ("Child executed command.", LOG_LVL_INFO, 1, 1,
                 "/var/log/myRPC.log");
     }
@@ -295,13 +297,14 @@ main (int argc, char *argv[])
     {"daemon", no_argument, 0, 'd'},
     {"pid-file", required_argument, 0, 'p'},
     {"help", no_argument, 0, 0},
+    {"x", no_argument, 0, 'x'},
     {0, 0, 0, 0}
   };
   int value, option_index = 0, ret;
   int start_daemonized = 0;
   /* Try to process all command line arguments */
   while ((value =
-          getopt_long (argc, argv, "c:l:t:p:d:h", long_options,
+          getopt_long (argc, argv, "c:l:p:dhx", long_options,
                        &option_index)) != -1)
     {
       switch (value)
@@ -318,6 +321,10 @@ main (int argc, char *argv[])
         case 'd':
           start_daemonized = 1;
           break;
+        case 'x':
+          mysyslog("EXTREME_MODE=True", LOG_LVL_DEBUG, 1, 1, server_log_file);
+          xtreme_mode = 1;
+          break;
         case 'h':
           print_help ();
         default:
@@ -331,6 +338,7 @@ main (int argc, char *argv[])
       /* It is also possible to use glibc function deamon()
        * at this point, but it is useful to customize your daemon. */
       daemonize ();
+      signal(SIGCHLD, SIG_DFL);
     }
   mysyslog ("Started server!", LOG_LVL_INFO, 1, 1, server_log_file);
   signal (SIGINT, handle_signal);
@@ -441,7 +449,6 @@ main (int argc, char *argv[])
                                      &received_command);
           int cnt_spaces = 0;
           int status;
-          // обышка
           char *username = json_object_get_string (received_login);
           char *command = json_object_get_string (received_command);
           char *sliding_token = strtok (command, " ");
@@ -489,6 +496,7 @@ main (int argc, char *argv[])
               int cmd_return_code =
                 execute_command (cnt_spaces, cmd_args, stdout_file,
                                  stderr_file);
+              mysyslog(strerror(errno), LOG_LVL_WARN, 1, 1, server_log_file);
               json_object_object_add (response_root, "code",
                                       json_object_new_int (cmd_return_code ==
                                                            0 ? cmd_return_code
@@ -515,7 +523,12 @@ main (int argc, char *argv[])
                 {
                   mysyslog ("Command returned an error...", LOG_LVL_INFO, 1,
                             1, "/var/log/myRPC.log");
-                  FILE *f = fopen (stderr_file, "r");
+                  FILE *f;
+                  if (xtreme_mode == 1) {
+                    f = fopen (stdout_file, "r");
+                  } else {
+                    f = fopen (stderr_file, "r");
+                  }
                   if (f)
                     {
                       size_t read_bytes = fread (result, 1, BSIZE, f);
@@ -532,7 +545,7 @@ main (int argc, char *argv[])
               json_object_object_add (response_root, "result",
                                       json_object_new_string (result));
               strcpy (response, json_object_to_json_string (response_root));
-              unlink (stdout_file);
+              //unlink (stdout_file);
               unlink (stderr_file);
             }
           else
