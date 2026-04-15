@@ -258,13 +258,13 @@ execute_command (int argc, const char **argv, char *stdout_file,
       if (d2_stdout == -1)
         {
           _LOG ("Failed copying file descriptor of stdout file",
-                    LOG_LVL_ERROR);
+                LOG_LVL_ERROR);
         }
       int d2_stderr = dup2 (fd_stderr, 2);
       if (d2_stderr == -1)
         {
           _LOG ("Failed copying file descriptor of stderr file",
-                    LOG_LVL_ERROR);
+                LOG_LVL_ERROR);
         }
       execvp (argv[0], argv);
       exit (1);
@@ -466,13 +466,13 @@ main (int argc, char *argv[])
                 {
                   printf ("%s\n", strerror (errno));
                   _LOG ("Error creating /tmp/myRPC_XXXXXX.stdout",
-                            LOG_LVL_ERROR);
+                        LOG_LVL_ERROR);
                 }
               if (err_m_stderr == -1)
                 {
                   printf ("%s\n", strerror (errno));
                   _LOG ("Error creating /tmp/myRPC_XXXXXX.stderr",
-                            LOG_LVL_ERROR);
+                        LOG_LVL_ERROR);
                 }
               // if cmd_return_code != 0 return stderr else stdout
               int cmd_return_code =
