@@ -22,7 +22,7 @@ deb: $(TARGET)
 	echo "port = 7777" > package/etc/myRPC/myRPC.conf
 	echo "socket_type = stream" >> package/etc/myRPC/myRPC.conf
 	echo "root" > package/etc/myRPC/users.conf
-	cp myRPC-server.service package/user/lib/systemd/system/
+	cp myRPC.service package/usr/lib/systemd/system/
 	chmod 775 package/DEBIAN/postinst
 	cp $< package/usr/bin
 	dpkg-deb --build ./package $(TARGET).deb
