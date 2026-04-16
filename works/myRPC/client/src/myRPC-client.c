@@ -1,3 +1,6 @@
+/*
+  The myRPC-client.c file defines the client side of the myRPC protocol.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,9 +10,14 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pwd.h>
+/*
+  Defined dependencies
+*/
 #include <mysyslog/libmysyslog.h>
 #include <json-c/json.h>
-
+/*
+  Print the help message for the myRPC-client binary
+*/
 void
 print_help ()
 {
@@ -23,6 +31,9 @@ print_help ()
   printf ("      --help                  Display this help and exit\n");
 }
 
+/*
+  Main function of myRPC-client
+*/
 int
 main (int argc, char *argv[])
 {

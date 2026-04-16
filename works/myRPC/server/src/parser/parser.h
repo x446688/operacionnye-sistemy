@@ -1,8 +1,16 @@
+/*
+  This file contains functions and definitions for the config parser
+  Thank you, https://github.com/welljsjs/Config-Parser-C
+*/
 #define CONFIG_ARG_MAX_BYTES 128
 
 typedef struct config_option config_option;
 typedef config_option *config_option_t;
 
+/*
+  The defined config_option structure with a link to the previous element
+  and a key = value pair.
+*/
 struct config_option
 {
   config_option_t prev;
@@ -10,6 +18,9 @@ struct config_option
   char value[CONFIG_ARG_MAX_BYTES];
 };
 
+/*
+  Parse the config file and return the last element of the key = value pair.
+*/
 config_option_t
 read_config_file (char *path)
 {
