@@ -1,3 +1,6 @@
+/*
+  This file includes the definitions for the myRPC-server.c
+*/
 #pragma once
 typedef struct config_t config_t;
 #define CONFIG_SOCKTYPE_MAX_BYTES 256

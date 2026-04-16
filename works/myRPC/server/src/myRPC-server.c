@@ -25,9 +25,13 @@ static int port = -1;
 static int status = NULL;
 static int stop = 0;
 static int xtreme_mode = 0;
-
+/*
+  Instead of invoking mysyslog with params 1,1, ... every time we use a macro
+*/
 #define _LOG(str, ll) mysyslog(str, ll, 1, 1, server_log_file)
-
+/*
+  Print the help message for the myRPC-client binary
+*/
 void
 print_help ()
 {
@@ -43,6 +47,9 @@ print_help ()
   printf ("  -x, --xtreme                  Force return stdout to result\n");
 }
 
+/*
+  Daemonize the application
+*/
 static void
 daemonize ()
 {
@@ -129,6 +136,9 @@ daemonize ()
     }
 }
 
+/*
+  Parse the configuration file for available options and save them acordingly
+*/
 int
 get_parsed_config_options (const char *path)
 {
@@ -166,6 +176,9 @@ get_parsed_config_options (const char *path)
   return -1;
 }
 
+/*
+  Handle SIGINT, SIGHUP and SIGCHILD (in some cases)
+*/
 void
 handle_signal (int sig)
 {
@@ -199,6 +212,11 @@ handle_signal (int sig)
     }
 }
 
+/*
+  Check whether the user is allowed to execute command on the server by
+  parsing the /etc/myRPC/users.conf file and attempting to find their 
+  username. If the username is not found - the user is not allowed.
+*/
 int
 user_allowed (const char *username)
 {
@@ -229,6 +247,11 @@ user_allowed (const char *username)
   return allowed;
 }
 
+/*
+  Execute the command on the server. Fork, exec the command and redirect
+  output to set fds. 
+  In the latest dev release a command sanity check was added.
+*/
 int
 execute_command (int argc, const char **argv, char *stdout_file,
                  char *stderr_file)
@@ -281,6 +304,19 @@ execute_command (int argc, const char **argv, char *stdout_file,
   return status;
 }
 
+/*
+  The main function of myRPC-server
+  The main flow of the program is as follows:
+  1. Parse args
+  2. Check if the server should start daemonized
+  3. Start server and handle signals
+  4. Create a socket of set socket_type
+  5. Wait for data on socket
+  6. If data is received - parse it
+  7. Execute parsed command
+  8. Return a JSON answer to the client
+  9. Clean up
+*/
 int
 main (int argc, char *argv[])
 {

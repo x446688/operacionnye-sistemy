@@ -2,7 +2,7 @@
 text to a file, defined by a FILE pointer. */
 
 #include "libmysyslog-text.h"
-#include <libmysyslog.h>
+#include <mysyslog/libmysyslog.h>
 
 /* the write_txt function takes a message, a process name, 
 a format, a log level and a file and writes the message 

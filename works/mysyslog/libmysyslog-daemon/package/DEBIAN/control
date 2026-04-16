@@ -2,7 +2,7 @@ Package: libmysyslog-daemon
 Version: 1.0
 Section: devel
 Priotity: optional
-Depends: libc6, libmysyslog, libmysyslog-json, systemd, libjson-c3
+Depends: libc6, libmysyslog, libmysyslog-json, systemd, libjson-c-dev
 Architecture: amd64
 Essential: no
 Installed-Size: 40

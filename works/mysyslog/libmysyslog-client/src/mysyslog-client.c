@@ -10,7 +10,7 @@ testing it's capabilities */
 #include <unistd.h>
 #include <getopt.h>
 #include <dlfcn.h>
-#include <libmysyslog.h>
+#include <mysyslog/libmysyslog.h>
 
 /* The main function defines code for the libmysyslog-program, allows 
 parameters such as msg, log level, driver, format and path and executes 

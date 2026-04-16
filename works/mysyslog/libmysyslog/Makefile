@@ -6,11 +6,11 @@ TARGET = libmysyslog.so
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(SRC)
+	$(CC) $(CFLAGS) -o $@ $(SRC) $(LDFLAGS)
 
 clean:
 	rm -fr $(TARGET)
-	rm -fr package/usr/lib
+	rm -fr package/usr/libs
 	rm $(TARGET).deb
 	rm -rf package/usr/include
 
