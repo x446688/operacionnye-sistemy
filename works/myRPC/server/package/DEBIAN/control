@@ -1,10 +1,10 @@
-Package: myRPC-server
-Version: 1.0.1
+Package: myrpc-server
+Version: 1.0.2
 Section: devel
 Priotity: optional
 Depends: libc6, libmysyslog, libmysyslog-text, systemd, libjson-c-dev
 Architecture: amd64
 Essential: no
-Installed-Size: 36
+Installed-Size: 32
 Maintainer: Lidskiy A. A. <besplatnii@internet.ru>
 Description: myRPC-server a socket-based RPC server that allows connections from myRPC-client and supports the JSON protocol
