@@ -1,6 +1,7 @@
 .PHONY: all clean deb
 TARGET = myRPC-server
-all: src/myRPC-server.c src/myRPC.h src/parser/parser.h src/mysyslog/libmysyslog.h
+
+$(TARGET): src/myRPC-server.c src/myRPC.h src/parser/parser.h src/mysyslog/libmysyslog.h
 	test -f /usr/lib/x86_64-linux-gnu/libmysyslog.so && echo "mysyslog already installed" || ../bootstrap.sh
 	test -d /etc/myRPC/ && echo "conf dir exists." || mkdir /etc/myRPC/
 	: > /var/log/myRPC.log
@@ -11,9 +12,12 @@ all: src/myRPC-server.c src/myRPC.h src/parser/parser.h src/mysyslog/libmysyslog
 	echo "socket_type = stream" >> /etc/myRPC/myRPC.conf
 	gcc src/myRPC-server.c -o $(TARGET) -lmysyslog -ljson-c
 
+all: $(TARGET)
+
 clean:
 	rm -rf $(TARGET)
 	rm -rf package/usr
+	rm -rf $(TARGET).deb
 
 deb: $(TARGET)
 	mkdir -p package/usr/bin
