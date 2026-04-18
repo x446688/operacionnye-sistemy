@@ -1,5 +1,5 @@
 Package: myRPC-server
-Version: 1.0
+Version: 1.0.1
 Section: devel
 Priotity: optional
 Depends: libc6, libmysyslog, libmysyslog-text, systemd, libjson-c-dev

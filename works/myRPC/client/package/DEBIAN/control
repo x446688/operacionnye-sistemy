@@ -1,5 +1,5 @@
 Package: myRPC-client
-Version: 1.0
+Version: 1.0.1
 Section: devel
 Priotity: optional
 Depends: libc6, libmysyslog, libmysyslog-text, libjson-c-dev
